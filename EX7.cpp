@@ -52,7 +52,7 @@ int main()
     double ro_n = 850;
 
     // Начальное содердание серы в нефти 
-    double sulfar_n = 0.1;
+    double sulfar_n = 0.2;
 
     // Вектор плотностей нефти входных партий 
     vector <double> ro_in(number_layers);
