@@ -16,7 +16,7 @@ int main()
     setlocale(LC_ALL, "Russian");
 
     // Открываем файл для записи
-    std::ofstream csvFile("output.csv");
+    std::ofstream csvFile("output55.csv");
 
     // Проверяем, открыт ли файл
     if (!csvFile.is_open()) {
