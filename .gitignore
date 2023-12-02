@@ -1,0 +1,8 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/Parties/x64/Debug
+/.vs/mx - github/v17
+/.vs
+/x64/Debug
