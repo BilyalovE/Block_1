@@ -39,12 +39,12 @@ int main()
 
     // T - период моделирования;
     int T = 6;
-    
+
     double dx = L / (n - 1);
 
     // Условие Куранта
     double dt = dx / v;
-    
+
     // Число слоев 
     int number_layers = T / dt;
 
@@ -56,7 +56,7 @@ int main()
 
     // Вектор плотностей нефти входных партий 
     vector <double> ro_in(number_layers);
-    ro_in = {870, 870, 870, 870, 880, 880, 880, 880, 0, 0, 0, 0, 0};
+    ro_in = { 870, 870, 870, 870, 880, 880, 880, 880, 0, 0, 0, 0, 0 };
 
     // Начальный слой по плотности
     vector <double> ro_0(n);
@@ -67,7 +67,7 @@ int main()
     // Вектор содержания серы в нефти входных партий 
     vector <double> sulfar_in(number_layers);
     sulfar_in = { 0.2, 0.2, 0.2, 0.2, 0.1, 0.1, 0.1, 0.1, 0, 0, 0, 0, 0 };
-    
+
 
     // Начальный слой по сере
     vector <double> sulfar_0(n);
@@ -82,7 +82,7 @@ int main()
     for (int i{ 0 }; i < n; i++)
     {
         // Заполнение трубы нефтью в начале моделирования
-        ro_0[i] = ro_n; 
+        ro_0[i] = ro_n;
         sulfar_0[i] = sulfar_n;
         cout << ro_0[i] << endl;
         csvFile << 0 << "," << dx * i << "," << ro_n << "," << sulfar_n << endl;
@@ -102,7 +102,7 @@ int main()
         for (int i = 1; i < n; i++)
         {
             ro_1[i] = ro_0[i - 1];
-            sulfar_1[i] = sulfar_0[i-1];
+            sulfar_1[i] = sulfar_0[i - 1];
             cout << ro_1[i] << endl;
             csvFile << dt * (j + 1) << "," << dx * i << "," << ro_1[i] << "," << sulfar_1[i] << endl;
         }
@@ -110,50 +110,50 @@ int main()
         // Копирование нового слой ro_1 в старый ro_0
         ro_0 = ro_1;
         sulfar_0 = sulfar_1;
-        
-
-    /*// Рассчёт слоев по плотности 
-    for (int j{ 0 }; j < number_layers; j++)
-    {
-        cout << "Слой " << j + 1 << endl;
-        ro_1[0] = ro_in[j];
-        cout << ro_1[0] << endl;
-        // Записываем данные в файл
-        csvFile << dt*(j+1) << "," << 0 << "," << ro_1[0]  << endl;
-
-        // Рассчёт нового слоя
-        for (int i{ 1 }; i < n; i++)
-        {
-            ro_1[i] = ro_0[i - 1];
-            cout << ro_1[i] << endl;
-            csvFile << dt*(j+1) << "," << dx * i << "," << ro_1[i] << endl;
-        }
-        
-        // Копирование нового слой ro_1 в старый ro_0
-        ro_0 = ro_1;
-        */
 
 
-        /*// Рассчёт слоев по сере
+        /*// Рассчёт слоев по плотности
         for (int j{ 0 }; j < number_layers; j++)
         {
             cout << "Слой " << j + 1 << endl;
-            sulfar_1[0] = sulfar_in[j];
-            cout << sulfar_1[0] << endl;
+            ro_1[0] = ro_in[j];
+            cout << ro_1[0] << endl;
             // Записываем данные в файл
-            csvFile << dt * (j + 1) << "," << 0 << "," << sulfar_1[0] << endl;
+            csvFile << dt*(j+1) << "," << 0 << "," << ro_1[0]  << endl;
 
             // Рассчёт нового слоя
             for (int i{ 1 }; i < n; i++)
             {
-                sulfar_1[i] = sulfar_0[i - 1];
-                cout << sulfar_1[i] << endl;
-                csvFile << dt * (j + 1) << "," << dx * i << "," << sulfar_1[i] << endl;
+                ro_1[i] = ro_0[i - 1];
+                cout << ro_1[i] << endl;
+                csvFile << dt*(j+1) << "," << dx * i << "," << ro_1[i] << endl;
             }
 
             // Копирование нового слой ro_1 в старый ro_0
-            sulfar_0 = sulfar_1;
+            ro_0 = ro_1;
             */
-        
+
+
+            /*// Рассчёт слоев по сере
+            for (int j{ 0 }; j < number_layers; j++)
+            {
+                cout << "Слой " << j + 1 << endl;
+                sulfar_1[0] = sulfar_in[j];
+                cout << sulfar_1[0] << endl;
+                // Записываем данные в файл
+                csvFile << dt * (j + 1) << "," << 0 << "," << sulfar_1[0] << endl;
+
+                // Рассчёт нового слоя
+                for (int i{ 1 }; i < n; i++)
+                {
+                    sulfar_1[i] = sulfar_0[i - 1];
+                    cout << sulfar_1[i] << endl;
+                    csvFile << dt * (j + 1) << "," << dx * i << "," << sulfar_1[i] << endl;
+                }
+
+                // Копирование нового слой ro_1 в старый ro_0
+                sulfar_0 = sulfar_1;
+                */
+
     }
 }
