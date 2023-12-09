@@ -1,6 +1,4 @@
-﻿// Задача 6. Расчет произвольного числа слоев с произвольным числом партий, рассч1т по сере
-// Функция
-
+﻿// Первичный рефакторинг
 #include <iostream>
 #include <vector>
 #include <locale.h>
@@ -8,152 +6,91 @@
 
 using namespace std;
 
+// Создание структуры параметров трубопровода
+struct Pipeline_parameters
+{
+    double L = 200;  // L - длина трубопровода
+    double v = 50;  // Скорость течения жидкости
+    int n = 3;     // Число разбиений трубопровода
+    int T = 6;    // T - период моделирования;
+    Pipeline_parameters() = default;
+};
+
+
+// Создание структуры параметров необходимых для функции солвера
+struct Input_solver_parametres {
+    int n; // Число разбиений трубопровода
+    int number_layers; // Число слоев 
+};
+
+// Создание функции с типом возврата Input_solver_parametres, которая на вход принимает структуру с типом Pipeline_parameters
+Input_solver_parametres input_function(Pipeline_parameters input)
+{
+    // Объявление структуры с именем Input_solver_parametres для переменной input_parametres
+    Input_solver_parametres input_parametres;
+    double dx = input.L / (input.n - 1);            // Разбиение трубы на секторы длиной dx
+    double dt = dx / input.v;                       // Шаг моделирования
+    input_parametres.number_layers = input.T / dt;  // Число слоев 
+    input_parametres.n = input.n;                   // Число разбиений трубопровода
+    return input_parametres;
+}
+
+
+// Создание функции солвера ( решателя, где параметрами функции являются: 
+                                   // структура входных парметров для реализации алгоритма солвера, 
+                                   // начальное значение измеряемого парметра, 
+                                   // входной массив измеряемых парметров )
+
+double* solver(Input_solver_parametres value, vector <double>* initial_buffer, vector <double>* buffer)
+{
+    vector <double> layer_0(value.n);  // Начальный слой
+    layer_0 = *initial_buffer;
+
+    vector <double> layer_1(value.n);  // Следующий слой 
+    layer_1[0] = (*buffer)[value.number_layers + 1];
+    for (int i{ 1 }; i < value.n; i++)
+    {
+        layer_1[i] = layer_0[i - 1];
+        cout << layer_1[i] << endl;
+    }
+    // По методу характеристик текущий слой(рассчитанный на данной итерации) 
+    // становится начальным слоем на следующей итерации для рассчёта следующего слоя
+    layer_0 = layer_1;
+    //return layer_1;
+
+}
+
+
 
 int main()
-
 {
-    // Корректный вывод руского текста
-    setlocale(LC_ALL, "Russian");
+    // Объявление структуры с именем Pipeline_parameters для переменной method_characteristics
+    Pipeline_parameters pipeline_characteristics;
+    
+    setlocale(LC_ALL, "Russian"); // Корректный вывод кириллицы
 
-    // Открываем файл для записи
-    std::ofstream csvFile("output.csv");
+    Input_solver_parametres input_parametres = input_function(pipeline_characteristics);
 
-    // Проверяем, открыт ли файл
-    if (!csvFile.is_open()) {
-        std::cerr << "Unable to open the file." << std::endl;
-        return 1;
-    }
+    double ro_n = 850;                         // Начальная плотность нефти в трубе
 
-    // Записываем заголовки колонок
-    csvFile << "Время,Координата,Плотность,Сера" << std::endl;
+    vector <double> ro_0(input_parametres.n);  // Начальный слой по плотности
 
-
-    // L - длина трубопровода
-    double L = 200;
-
-    // Скорость течения жидкости
-    double v = 50;
-
-    // Число разбиений трубопровода
-    int n = 3;
-
-    // T - период моделирования;
-    int T = 6;
-
-    double dx = L / (n - 1);
-
-    // Условие Куранта
-    double dt = dx / v;
-
-    // Число слоев 
-    int number_layers = T / dt;
-
-    // Начальная плотность нефти в трубе
-    double ro_n = 850;
-
-    // Начальное содердание серы в нефти 
-    double sulfar_n = 0.2;
-
-    // Вектор плотностей нефти входных партий 
-    vector <double> ro_in(number_layers);
+    vector <double> ro_in(input_parametres.number_layers); // Вектор плотностей нефти входных партий 
     ro_in = { 870, 870, 870, 870, 880, 880, 880, 880, 0, 0, 0, 0, 0 };
 
-    // Начальный слой по плотности
-    vector <double> ro_0(n);
 
-    // Следующий слой по плотности
-    vector <double> ro_1(n);
-
-    // Вектор содержания серы в нефти входных партий 
-    vector <double> sulfar_in(number_layers);
-    sulfar_in = { 0.2, 0.2, 0.2, 0.2, 0.1, 0.1, 0.1, 0.1, 0, 0, 0, 0, 0 };
-
-
-    // Начальный слой по сере
-    vector <double> sulfar_0(n);
-
-    // Следующий слой по сере
-    vector <double> sulfar_1(n);
-
-
-
-    // Предполагаем, что в начальный момент времени всю трубу заполняют  нефть с плотностью ro_n
+    // Предполагаем, что в начальный момент времени всю трубу заполняют нефть с начальными параметрами initial_value
     cout << "Заполнение трубы нефтью в начале моделирования" << endl;
-    for (int i{ 0 }; i < n; i++)
+    for (int i{ 0 }; i < input_parametres.n; i++)
     {
-        // Заполнение трубы нефтью в начале моделирования
         ro_0[i] = ro_n;
-        sulfar_0[i] = sulfar_n;
         cout << ro_0[i] << endl;
-        csvFile << 0 << "," << dx * i << "," << ro_n << "," << sulfar_n << endl;
     }
 
-    // Рассчёт слоев по плотности и сере
-    for (int j = 0; j < number_layers; j++)
+    for (int j{ 0 }; j < input_parametres.number_layers; j++)
     {
-        cout << "Слой " << j + 1 << endl;
-        ro_1[0] = ro_in[j];
-        sulfar_1[0] = sulfar_in[j];
-        cout << ro_1[0] << endl;
-        // Записываем данные в файл
-        csvFile << dt * (j + 1) << "," << 0 << "," << ro_1[0] << "," << sulfar_1[0] << endl;
-
-        // Рассчёт нового слоя
-        for (int i = 1; i < n; i++)
-        {
-            ro_1[i] = ro_0[i - 1];
-            sulfar_1[i] = sulfar_0[i - 1];
-            cout << ro_1[i] << endl;
-            csvFile << dt * (j + 1) << "," << dx * i << "," << ro_1[i] << "," << sulfar_1[i] << endl;
-        }
-
-        // Копирование нового слой ro_1 в старый ro_0
-        ro_0 = ro_1;
-        sulfar_0 = sulfar_1;
-
-
-        /*// Рассчёт слоев по плотности
-        for (int j{ 0 }; j < number_layers; j++)
-        {
-            cout << "Слой " << j + 1 << endl;
-            ro_1[0] = ro_in[j];
-            cout << ro_1[0] << endl;
-            // Записываем данные в файл
-            csvFile << dt*(j+1) << "," << 0 << "," << ro_1[0]  << endl;
-
-            // Рассчёт нового слоя
-            for (int i{ 1 }; i < n; i++)
-            {
-                ro_1[i] = ro_0[i - 1];
-                cout << ro_1[i] << endl;
-                csvFile << dt*(j+1) << "," << dx * i << "," << ro_1[i] << endl;
-            }
-
-            // Копирование нового слой ro_1 в старый ro_0
-            ro_0 = ro_1;
-            */
-
-
-            /*// Рассчёт слоев по сере
-            for (int j{ 0 }; j < number_layers; j++)
-            {
-                cout << "Слой " << j + 1 << endl;
-                sulfar_1[0] = sulfar_in[j];
-                cout << sulfar_1[0] << endl;
-                // Записываем данные в файл
-                csvFile << dt * (j + 1) << "," << 0 << "," << sulfar_1[0] << endl;
-
-                // Рассчёт нового слоя
-                for (int i{ 1 }; i < n; i++)
-                {
-                    sulfar_1[i] = sulfar_0[i - 1];
-                    cout << sulfar_1[i] << endl;
-                    csvFile << dt * (j + 1) << "," << dx * i << "," << sulfar_1[i] << endl;
-                }
-
-                // Копирование нового слой ro_1 в старый ro_0
-                sulfar_0 = sulfar_1;
-                */
-
+        cout << "Слой" << j + 1 << endl;
+        solver(input_parametres, &ro_0, &ro_in);
     }
+
 }
