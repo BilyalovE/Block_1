@@ -1,4 +1,9 @@
-﻿// Первичный рефакторинг
+﻿/*!
+    \brief Метод характеристик
+    \author Eldar
+    \version 2
+    \date 15.12.2023
+*/
 #include <iostream>
 #include <vector>
 #include <locale.h>
@@ -76,32 +81,32 @@ int main()
 
     setlocale(LC_ALL, "Russian"); // Корректный вывод кириллицы
 
-    Input_solver_parametres input_parametres = input_function(pipeline_characteristics);
+    Input_solver_parameters input_parameter = input_function(pipeline_characteristics);
 
     double ro_n = 850;                         // Начальная плотность нефти в трубе
 
-    vector <double> ro_0(input_parametres.n);  // Начальный слой по плотности
+    vector <double> ro_0(input_parameter.n);  // Начальный слой по плотности
 
-    vector <double> ro_in(input_parametres.number_layers); // Вектор плотностей нефти входных партий 
+    vector <double> ro_in(input_parameter.number_layers); // Вектор плотностей нефти входных партий 
     ro_in = { 890, 870, 870, 870, 880, 880, 880, 880, 0, 0, 0, 0, 0 };
 
-    vector <double> sloi(input_parametres.n);
+    vector <double> sloi(input_parameter.n);
     // Предполагаем, что в начальный момент времени всю трубу заполняют нефть с начальными параметрами initial_value
     cout << "Заполнение трубы нефтью в начале моделирования" << endl;
-    for (int i{ 0 }; i < input_parametres.n; i++)
+    for (int i{ 0 }; i < input_parameter.n; i++)
     {
         ro_0[i] = ro_n;
         cout << ro_0[i] << endl;
     }
     //input_parametres.number_layers
-    for (int j{ 0 }; j < input_parametres.number_layers; j++)
+    for (int j{ 0 }; j < input_parameter.number_layers; j++)
     {
-        sloi = solver(input_parametres, &ro_0, &ro_in[j]);
-        output_function(j, input_parametres, &sloi);
+        sloi = solver(input_parameter, &ro_0, &ro_in[j]);
+        output_function(j, input_parameter, &sloi);
         ro_0 = sloi;
     }
 
-    cout << "все плохо";
+
     system("pause");
 
     return 0;
