@@ -17,7 +17,7 @@ struct Pipeline_parameters
 {
     double L = 200;  // L - длина трубопровода
     double v = 50;  // Скорость течения жидкости 
-    int T = 8;    // T - период моделирования;
+    int T = 10;    // T - период моделирования;
     Pipeline_parameters() = default;
 };
 
@@ -48,24 +48,25 @@ Input_solver_parameters input_function(Pipeline_parameters pipeline_characterist
                                    // начальное значение измеряемого парметра, 
                                    // входной массив измеряемых парметров )
 
-vector <double> solver(Input_solver_parameters solver_parameters, vector <double>* ro_0, double* ro_in)
+vector <double> solver(Input_solver_parameters solver_parameters, vector <double>* ro_0, double ro_in)
 {
-    vector <double> layer_0(solver_parameters.n);  // Начальный слой
-    layer_0 = *ro_0;
-
     vector <double> layer_1(solver_parameters.n);  // Следующий слой 
-    layer_1[0] = *ro_in;
+    layer_1[0] = ro_in;
     for (int i{ 1 }; i < solver_parameters.n; i++)
     {
-        layer_1[i] = layer_0[i - 1];
-        //cout << layer_1[i] << endl;
+        layer_1[i] = (*ro_0)[i - 1];
     }
     // По методу характеристик текущий слой(рассчитанный на данной итерации) 
     // становится начальным слоем на следующей итерации для рассчёта следующего слоя
-    layer_0 = layer_1;
     return layer_1;
 }
 
+/// @brief Функция, созданная для вываода
+/// @param j Счетчик
+/// @param solver_parameters 
+/// @param ro_0
+/// @param filename 
+/// @return Массив в файле
 void output_function(int j, Input_solver_parameters solver_parameters, vector <double>* ro_0, const std::string& filename) {
     // Корректный вывод руского текста
     
@@ -94,6 +95,7 @@ void output_function(int j, Input_solver_parameters solver_parameters, vector <d
 int main()
 {
     // Объявление структуры с именем Pipeline_parameters для переменной pipeline_characteristics
+    /// @brief Объявление структуры с именем Pipeline_parameters для переменной pipeline_characteristics
     Pipeline_parameters  pipeline_characteristics;
     // Инициализация структуры solver_parameters через вызов функции input_function 
     Input_solver_parameters solver_parameters = input_function(pipeline_characteristics);
@@ -120,13 +122,15 @@ int main()
     {
         ro_0[i] = ro_n;
     }
-   
+
+    output_function(0, solver_parameters, &ro_0, filename);
     // Расчёт произвольного числа слоев (solver_parameters.number_layers) через вызов функции  solver в цикле
-    for (int j{ 0 }; j < solver_parameters.number_layers; j++)
+    for (int j{ 1 }; j < solver_parameters.number_layers; j++)
     {
         // Вывод в файл 
+        ro_0 = solver(solver_parameters, &ro_0, ro_in[j]);
         output_function(j, solver_parameters, &ro_0, filename);
-        ro_0 = solver(solver_parameters, &ro_0, &ro_in[j]);
     }
+
     return 0;
 }
