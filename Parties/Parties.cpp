@@ -1,8 +1,8 @@
 ﻿/*!
     \brief Метод характеристик
     \author Eldar
-    \version 2
-    \date 15.12.2023
+    \version 3 (использование буффера, подключение pde solvers)
+    \date 17.12.2023
 */
 
 #include <iostream>
