@@ -1,4 +1,10 @@
-﻿// Первичный рефакторинг
+﻿/*!
+    \brief Метод характеристик
+    \author Eldar
+    \version 2
+    \date 15.12.2023
+*/
+
 #include <iostream>
 #include <vector>
 #include <locale.h>
@@ -10,29 +16,30 @@ using namespace std;
 struct Pipeline_parameters
 {
     double L = 200;  // L - длина трубопровода
-    double v = 50;  // Скорость течения жидкости
-    int n = 3;     // Число разбиений трубопровода
-    int T = 6;    // T - период моделирования;
+    double v = 50;  // Скорость течения жидкости 
+    int T = 10;    // T - период моделирования;
     Pipeline_parameters() = default;
 };
 
 
 // Создание структуры параметров необходимых для функции солвера
-struct Input_solver_parametres {
+struct Input_solver_parameters {
     int n; // Число разбиений трубопровода
     int number_layers; // Число слоев 
+    double dx; // Разбиение трубы на секторы длиной dx
+    double dt; // Шаг моделирования
 };
 
 // Создание функции с типом возврата Input_solver_parametres, которая на вход принимает структуру с типом Pipeline_parameters
-Input_solver_parametres input_function(Pipeline_parameters input)
+Input_solver_parameters input_function(Pipeline_parameters pipeline_characteristics)
 {
-    // Объявление структуры с именем Input_solver_parametres для переменной input_parametres
-    Input_solver_parametres input_parametres;
-    double dx = input.L / (input.n - 1);            // Разбиение трубы на секторы длиной dx
-    double dt = dx / input.v;                       // Шаг моделирования
-    input_parametres.number_layers = input.T / dt;  // Число слоев 
-    input_parametres.n = input.n;                   // Число разбиений трубопровода
-    return input_parametres;
+    // Объявление структуры с именем Input_solver_parametres для переменной solver_parameters
+    Input_solver_parameters solver_parameters;
+    solver_parameters.n = 3;                   // Число разбиений трубопровода
+    solver_parameters.dx = pipeline_characteristics.L / (solver_parameters.n - 1);            // Разбиение трубы на секторы длиной dx
+    solver_parameters.dt = solver_parameters.dx / pipeline_characteristics.v;                       // Шаг моделирования
+    solver_parameters.number_layers = static_cast<int>(pipeline_characteristics.T / solver_parameters.dt);  // Число слоев 
+    return solver_parameters;
 }
 
 
@@ -41,70 +48,89 @@ Input_solver_parametres input_function(Pipeline_parameters input)
                                    // начальное значение измеряемого парметра, 
                                    // входной массив измеряемых парметров )
 
-vector <double> solver(Input_solver_parametres value, vector <double>* initial_buffer, double* ptr)
+vector <double> solver(Input_solver_parameters solver_parameters, vector <double>* ro_0, double ro_in)
 {
-    vector <double> layer_0(value.n);  // Начальный слой
-    layer_0 = *initial_buffer;
-
-    vector <double> layer_1(value.n);  // Следующий слой 
-    layer_1[0] = *ptr;
-    for (int i{ 1 }; i < value.n; i++)
+    vector <double> layer_1(solver_parameters.n);  // Следующий слой 
+    layer_1[0] = ro_in;
+    for (int i{ 1 }; i < solver_parameters.n; i++)
     {
-        layer_1[i] = layer_0[i - 1];
-        //cout << layer_1[i] << endl;
+        layer_1[i] = (*ro_0)[i - 1];
     }
     // По методу характеристик текущий слой(рассчитанный на данной итерации) 
     // становится начальным слоем на следующей итерации для рассчёта следующего слоя
-    layer_0 = layer_1;
     return layer_1;
-
 }
 
-void output_function(int j, Input_solver_parametres value, vector <double>* sloi) {
-    vector <double> output_sloi(value.n);
-    output_sloi = *sloi;
-    cout << "Слой" << j + 1 << endl;
-    for (int i{ 0 }; i < value.n; i++) {
-        cout << output_sloi[i] << endl;
+/// @brief Функция, созданная для вываода
+/// @param j Счетчик
+/// @param solver_parameters 
+/// @param ro_0
+/// @param filename 
+/// @return Массив в файле
+void output_function(int j, Input_solver_parameters solver_parameters, vector <double>* ro_0, const std::string& filename) {
+    // Корректный вывод руского текста
+    
+    setlocale(LC_ALL, "Russian");
+    // Записываем заголовки колонок, если файл пустой
+     
+    // Открыть файл в режиме добавления данных в конец файла или обрезания при новом запуске
+    std::ofstream outfile(filename, std::ios::app);
+
+    if (!outfile.is_open()) {
+        std::cerr << "Ошибка открытия файла " << filename << std::endl;
+        return;
     }
+    
+    vector <double> output_sloi(solver_parameters.n);
+    output_sloi = *ro_0;
+    for (int i{ 0 }; i < solver_parameters.n; i++) {
+        outfile << solver_parameters.dt * (j) << "," << solver_parameters.dx * i << "," << output_sloi[i]  << endl;
+    }
+
+    // Закрыть файл
+    outfile.close();
+    std::cout << "Массив успешно добавлен в файл " << filename << std::endl;
 }
 
 int main()
 {
-    // Объявление структуры с именем Pipeline_parameters для переменной method_characteristics
-    Pipeline_parameters pipeline_characteristics;
+    // Объявление структуры с именем Pipeline_parameters для переменной pipeline_characteristics
+    /// @brief Объявление структуры с именем Pipeline_parameters для переменной pipeline_characteristics
+    Pipeline_parameters  pipeline_characteristics;
+    // Инициализация структуры solver_parameters через вызов функции input_function 
+    Input_solver_parameters solver_parameters = input_function(pipeline_characteristics);
 
-    setlocale(LC_ALL, "Russian"); // Корректный вывод кириллицы
+    double ro_n = 805;                         // Начальная плотность нефти в трубе
 
-    Input_solver_parametres input_parametres = input_function(pipeline_characteristics);
+    vector <double> ro_0(solver_parameters.n);  // Начальный слой по плотности
 
-    double ro_n = 850;                         // Начальная плотность нефти в трубе
+    vector <double> ro_in(solver_parameters.number_layers); // Вектор плотностей нефти входных партий 
+    ro_in = { 880, 870, 870, 870, 880, 880, 880, 880, 0, 0, 0, 0, 0 };
+    
+    // Задаем имя файла на вывод данных
+    const std::string filename = "output.csv";
 
-    vector <double> ro_0(input_parametres.n);  // Начальный слой по плотности
+    // Удалить файл, если он существует
+    std::remove(filename.c_str());
 
-    vector <double> ro_in(input_parametres.number_layers); // Вектор плотностей нефти входных партий 
-    ro_in = { 890, 870, 870, 870, 880, 880, 880, 880, 0, 0, 0, 0, 0 };
-
-    vector <double> sloi(input_parametres.n);
+    // Открыть файл в режиме добавления данных в конец файла или обрезания при новом запуске
+    std::ofstream outfile(filename, std::ios::app);
+    outfile << "Время,Координата,Плотность" << std::endl;
+    
     // Предполагаем, что в начальный момент времени всю трубу заполняют нефть с начальными параметрами initial_value
-    cout << "Заполнение трубы нефтью в начале моделирования" << endl;
-    for (int i{ 0 }; i < input_parametres.n; i++)
+    for (int i{ 0 }; i < solver_parameters.n; i++)
     {
         ro_0[i] = ro_n;
-        cout << ro_0[i] << endl;
-    }
-    //input_parametres.number_layers
-    for (int j{ 0 }; j < input_parametres.number_layers; j++)
-    {
-        sloi = solver(input_parametres, &ro_0, &ro_in[j]);
-        output_function(j, input_parametres, &sloi);
-        ro_0 = sloi;
     }
 
-    cout << "все плохо";
-    system("pause");
+    output_function(0, solver_parameters, &ro_0, filename);
+    // Расчёт произвольного числа слоев (solver_parameters.number_layers) через вызов функции  solver в цикле
+    for (int j{ 1 }; j < solver_parameters.number_layers; j++)
+    {
+        // Вывод в файл 
+        ro_0 = solver(solver_parameters, &ro_0, ro_in[j]);
+        output_function(j, solver_parameters, &ro_0, filename);
+    }
 
     return 0;
-
-
 }
