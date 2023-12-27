@@ -6,3 +6,5 @@
 /.vs/mx - github/v17
 /.vs
 /x64/Debug
+output.csv
+OutputGraph.py
