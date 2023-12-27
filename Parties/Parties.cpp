@@ -1,12 +1,14 @@
 ﻿/*!
-    \brief Метод характеристик (рассчёт по плотности)
+    \brief Метод характеристик (рассчёт по плотности и сере)
     \author Bilyalov Eldar
-    \version 3 (использование буффера, подключение pde solvers, комментари в стиле doxygen, корректный вывод в файл)
+    \version 3 (использование буффера, подключение pde solvers, комментарии в стиле doxygen, корректный вывод в файл -
+    для каждого расченого параметра создается отдельный файл) 
     \date 27.12.2023
 */
 
 // Подключаем необходимые библиотеки
 #include <iostream>
+#include <string>
 #include <vector>
 #include <locale.h>
 #include <fstream>
@@ -60,9 +62,9 @@ Input_solver_parameters input_function(Pipeline_parameters pipeline_characterist
 /// @brief Функция солвера, рассчитываающая слои по методу характеристик
 /// @param solver_parameters - структура параметров, необходимая для алгоритма;
 /// @param buffer - буффер, который для рассчета хранит 2 слоя (текущий и предущий);
-/// @param left_condition_density - граничное условие для плотности.
+/// @param left_condition - граничное условие для параметра нефти.
 /// @return previous_layer - возвращает рассчитанный по методу характеристик текущий слой
-vector<double> solver(Input_solver_parameters solver_parameters, ring_buffer_t<vector<double>>* buffer, double left_condition_density)
+vector<double> solver(Input_solver_parameters solver_parameters, ring_buffer_t<vector<double>>* buffer, double left_condition)
 {
     // Получение ссылок на текущий и предыдущий слои буфера
     vector<double>& previous_layer = (*buffer).previous();
@@ -74,7 +76,7 @@ vector<double> solver(Input_solver_parameters solver_parameters, ring_buffer_t<v
     }
     // Слой current_layer на следующем шаге должен стать предыдущим. 
     // Для этого сместим индекс текущего слоя в буфере на единицу
-    current_layer[0] = left_condition_density;
+    current_layer[0] = left_condition;
     (*buffer).advance(+1);
     return previous_layer;
 }
@@ -107,6 +109,27 @@ void output_function(int j, Input_solver_parameters solver_parameters, vector <d
     return;
 }
 
+
+/// @brief Функция, создающая файл, в который выводится определенный  параметр
+/// @param name_file - имя созданного файла;
+/// @param heading - заголовок параметра, который выводим.
+string generating_output_file(string name_file, string heading) {
+    /// Имя файла на вывод данных
+    const string expansion = ".csv";
+    string filename;
+    filename.append(name_file).append(expansion);
+
+    /// Удалить файл, если он существует
+    remove(filename.c_str());
+
+    /// Открыть файл в режиме добавления данных в конец файла или обрезания при новом запуске
+    ofstream outfile(filename, std::ios::app);
+    // Заголовки файла
+    string title = "Время,Координата,";
+    outfile << title.append(heading) << std::endl;
+    return filename;
+}
+
 /// @brief Главная функция, в которой происходит инициализация структур, краевых и начальных условий, а также вызов функции солвера и функции вывода в файл
 int main()
 {
@@ -118,35 +141,38 @@ int main()
     /// Начальное значение плотности нефти в трубе
     double initial_condition_density = 805;
 
+    /// Начальное содержание серы в нефти в трубе
+    double initial_condition_sulfar = 0.15;
+
     /// Предполагаем, что в начальный момент времени всю трубу заполняют нефть с начальными параметрами initial_condition_density
     /// Начальный слой по плотности
     vector <double> initial_density_layer(solver_parameters.n, initial_condition_density);
     /// Вектор, содержащий значения плотностей нефти входных партий 
     vector <double> input_conditions_density(solver_parameters.number_layers);
-
     input_conditions_density = { 880, 870, 870, 870, 880, 880, 880, 880, 0, 0, 0, 0, 0 };
-    /// Имя файла на вывод данных
-    const std::string filename = "output.csv";
 
-    /// Удалить файл, если он существует
-    std::remove(filename.c_str());
+    /// Начальный слой по сере
+    vector <double> initial_sulfar_layer(solver_parameters.n, initial_condition_sulfar);
+    /// Вектор содержания серы в нефти входных партий 
+    vector <double> input_conditions_sulfar(solver_parameters.number_layers);
+    input_conditions_sulfar = { 0.2, 0.1, 0.1, 0.1, 0.25, 0.25, 0.25, 0.25, 0, 0, 0, 0, 0 };
+    
+    /// Генерация файлов
+    string output_file_density = generating_output_file("density", "Плотность");
+    string output_file_sulfar = generating_output_file("sulfar", "Сера");
 
-    /// Открыть файл в режиме добавления данных в конец файла или обрезания при новом запуске
-    std::ofstream outfile(filename, std::ios::app);
-    // Заголовки файла
-    outfile << "Время,Координата,Плотность" << std::endl;
-
-
-    // Создание буфера для решаемой задачи
+    // Создаем 2 буфера для решаемой задачи
     // 2 - количество слоев в буфере (для метода характеристик достаточно хранить 2 слоя)
-    // initial_layer - слой, значениями из которого проинициализируются все слои буфера
-    ring_buffer_t<vector<double>> buffer(2, initial_density_layer);
-
+    // initial_density_layer - слой, значениями из которого проинициализируются все слои буфера
+    ring_buffer_t<vector<double>> buffer_density(2, initial_density_layer);
+    // initial_sulfar_layer - слой, значениями из которого проинициализируются все слои буфера
+    ring_buffer_t<vector<double>> buffer_sulfar(2, initial_sulfar_layer);
     // Расчёт произвольного числа слоев (solver_parameters.number_layers) через вызов функции  solver в цикле
     /// j - счетчик слоев
     for (int j{ 0 }; j < solver_parameters.number_layers+1; j++)
     {
-        output_function(j, solver_parameters, solver(solver_parameters, &buffer, input_conditions_density[j]), filename);
+        output_function(j, solver_parameters, solver(solver_parameters, &buffer_density, input_conditions_density[j]), output_file_density);
+        output_function(j, solver_parameters, solver(solver_parameters, &buffer_sulfar, input_conditions_sulfar[j]), output_file_sulfar);
     }
     return 0;
 }
