@@ -6,5 +6,8 @@
 /.vs/mx - github/v17
 /.vs
 /x64/Debug
-output.csv
 OutputGraph.py
+merge_output.py
+density.csv
+merged_result.csv
+sulfar.csv
