@@ -3,7 +3,7 @@ import pandas as pd
 from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
 
-rawData = pd.read_csv("output.csv", encoding='windows-1251')
+rawData = pd.read_csv("merged_result.csv", encoding='utf-8')
 parametersNames = rawData.columns.tolist()[2:]
 [timeLabel, coordLabel] = rawData.columns.tolist()[:2]
 plotsCount = len(parametersNames)
