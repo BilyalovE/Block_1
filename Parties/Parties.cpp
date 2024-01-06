@@ -84,10 +84,10 @@ void output_function(Input_solver_parameters solver_parameters, ring_buffer_t<ve
     //1 слой с записью заголовка
     if (i == 0) {
         ofstream outFile("Output.csv");
-        outFile << "Время, координиата, плотность, сера" << "\n";
+        outFile << "Время,координиата,плотность,сера" << endl;
         // Записать значения текущего слоя в файл
         for (size_t j = 0; j < previous_layer[0].size(); j++) {
-            outFile << i * solver_parameters.dt << "," << j * solver_parameters.dx << "," << previous_layer[0][j] << "," << previous_layer[1][j] << "\n";
+            outFile << i * solver_parameters.dt << "," << j * solver_parameters.dx << "," << previous_layer[0][j] << "," << previous_layer[1][j] << endl;
         }
         outFile.close();
     }
@@ -96,7 +96,7 @@ void output_function(Input_solver_parameters solver_parameters, ring_buffer_t<ve
         ofstream outFile("Output.csv", ios::app);
         // Записать значения текущего слоя в файл
         for (size_t j = 0; j < previous_layer[0].size(); j++) {
-            outFile << i * solver_parameters.dt << "," << j * solver_parameters.dx << "," << previous_layer[0][j] << "," << previous_layer[1][j] << "\n";
+            outFile << i * solver_parameters.dt << "," << j * solver_parameters.dx << "," << previous_layer[0][j] << "," << previous_layer[1][j] << endl;
         }
         outFile.close();
     }
