@@ -1,9 +1,8 @@
 ﻿/*!
     \brief Метод характеристик (рассчёт по плотности и сере)
     \author Bilyalov Eldar
-    \version 3 (использование буффера, подключение pde solvers, комментарии в стиле doxygen, корректный вывод в файл -
-    для каждого расченого параметра создается отдельный файл) 
-    \date 27.12.2023
+    \version 4 (правильное использование буффера - без скрытого копирования, корректный вывод) 
+    \date 30.12.2023 - 6.01.24
 */
 
 // Подключаем необходимые библиотеки
@@ -57,19 +56,15 @@ Input_solver_parameters input_function(Pipeline_parameters pipeline_characterist
     return solver_parameters;
 }
 
-
-
 /// @brief Функция солвера, рассчитываающая слои по методу характеристик
 /// @param solver_parameters - структура параметров, необходимая для алгоритма;
 /// @param buffer - буффер, который для рассчета хранит 2 слоя (текущий и предущий);
 /// @param left_condition - граничное условие для параметра нефти.
 /// @return previous_layer - возвращает рассчитанный по методу характеристик текущий слой
-vector<double> solver(Input_solver_parameters solver_parameters, ring_buffer_t<vector<double>>* buffer, double left_condition)
+void solver(Input_solver_parameters solver_parameters, vector<double>& current_layer, vector<double>& previous_layer, double left_condition)
 {
     // Получение ссылок на текущий и предыдущий слои буфера
-    vector<double>& previous_layer = (*buffer).previous();
-    vector<double>& current_layer = (*buffer).current();
-    
+  
     for (size_t i = 1; i < solver_parameters.n; i++)
     {
         current_layer[i] = previous_layer[i - 1];
@@ -77,58 +72,37 @@ vector<double> solver(Input_solver_parameters solver_parameters, ring_buffer_t<v
     // Слой current_layer на следующем шаге должен стать предыдущим. 
     // Для этого сместим индекс текущего слоя в буфере на единицу
     current_layer[0] = left_condition;
-    (*buffer).advance(+1);
-    return previous_layer;
 }
 
 /// @brief Функция, которая выводит рассчитанные по методу характеристи слои в файл формата csv
-/// @param j - cчетчик слоев;
+/// @param i - cчетчик слоев;
 /// @param solver_parameters - структура параметров, необходимых для реализации функции солвера ;
-/// @param previous_layer - предыдущий слой, рассчитанный в функции солвера;
-/// @param filename - имя файла, в который выводятся рассчитанные слои.
-/// @return  - пустой возврат (вывод в файл рассчитанного слоя - previous_layer).
-void output_function(int j, Input_solver_parameters solver_parameters, vector <double> previous_layer, const std::string& filename) {
-    // Корректный вывод руского текста
-    setlocale(LC_ALL, "Russian"); 
-    // Открыть файл в режиме добавления данных в конец файла или обрезания при новом запуске
-    std::ofstream outfile(filename, std::ios::app);
-
-    if (!outfile.is_open()) {
-        std::cerr << "Ошибка открытия файла " << filename << std::endl;
-        return;
+/// @param buffer - буффер, рассчитанный после солвера;
+/// @return  - пустой возврат (вывод в файл рассчитанного слоя - buffer.current()).
+void output_function(Input_solver_parameters solver_parameters, ring_buffer_t<vector<vector<double>>>& buffer, int i) {
+    vector<vector<double>>& previous_layer = buffer.previous();
+    //1 слой с записью заголовка
+    if (i == 0) {
+        ofstream outFile("Output.csv");
+        outFile << "Время,координиата,плотность,сера" << endl;
+        // Записать значения текущего слоя в файл
+        for (size_t j = 0; j < previous_layer[0].size(); j++) {
+            outFile << i * solver_parameters.dt << "," << j * solver_parameters.dx << "," << previous_layer[0][j] << "," << previous_layer[1][j] << endl;
+        }
+        outFile.close();
     }
-    /// Вывод рассчитанного текущего слоя в файл
-    /// i - счетчик для корректного вывода
-    for (int i{0}; i < solver_parameters.n; i++) {
-        outfile << solver_parameters.dt * (j) << "," << solver_parameters.dx * i << "," << previous_layer[i]  << endl;
+    //последующие слои
+    else {
+        ofstream outFile("Output.csv", ios::app);
+        // Записать значения текущего слоя в файл
+        for (size_t j = 0; j < previous_layer[0].size(); j++) {
+            outFile << i * solver_parameters.dt << "," << j * solver_parameters.dx << "," << previous_layer[0][j] << "," << previous_layer[1][j] << endl;
+        }
+        outFile.close();
     }
-
-    // Закрыть файл
-    outfile.close();
-    std::cout << "Массив успешно добавлен в файл " << filename << std::endl;
-    return;
 }
 
 
-/// @brief Функция, создающая файл, в который выводится определенный  параметр
-/// @param name_file - имя созданного файла;
-/// @param heading - заголовок параметра, который выводим.
-string generating_output_file(string name_file, string heading) {
-    /// Имя файла на вывод данных
-    const string expansion = ".csv";
-    string filename;
-    filename.append(name_file).append(expansion);
-
-    /// Удалить файл, если он существует
-    remove(filename.c_str());
-
-    /// Открыть файл в режиме добавления данных в конец файла или обрезания при новом запуске
-    ofstream outfile(filename, std::ios::app);
-    // Заголовки файла
-    string title = "Время,Координата,";
-    outfile << title.append(heading) << std::endl;
-    return filename;
-}
 
 /// @brief Главная функция, в которой происходит инициализация структур, краевых и начальных условий, а также вызов функции солвера и функции вывода в файл
 int main()
@@ -156,23 +130,21 @@ int main()
     /// Вектор содержания серы в нефти входных партий 
     vector <double> input_conditions_sulfar(solver_parameters.number_layers);
     input_conditions_sulfar = { 0.2, 0.1, 0.1, 0.1, 0.25, 0.25, 0.25, 0.25, 0, 0, 0, 0, 0 };
-    
-    /// Генерация файлов
-    string output_file_density = generating_output_file("density", "Плотность");
-    string output_file_sulfar = generating_output_file("sulfar", "Сера");
-
-    // Создаем 2 буфера для решаемой задачи
+   
+    // Создаем  буфер для решаемой задачи
     // 2 - количество слоев в буфере (для метода характеристик достаточно хранить 2 слоя)
     // initial_density_layer - слой, значениями из которого проинициализируются все слои буфера
-    ring_buffer_t<vector<double>> buffer_density(2, initial_density_layer);
     // initial_sulfar_layer - слой, значениями из которого проинициализируются все слои буфера
-    ring_buffer_t<vector<double>> buffer_sulfar(2, initial_sulfar_layer);
+    ring_buffer_t<vector<vector<double>>> buffer(2, { initial_density_layer, initial_sulfar_layer });
+ 
     // Расчёт произвольного числа слоев (solver_parameters.number_layers) через вызов функции  solver в цикле
     /// j - счетчик слоев
-    for (int j{ 0 }; j < solver_parameters.number_layers+1; j++)
+   for (size_t j{0}; j < solver_parameters.number_layers + 1; j++)
     {
-        output_function(j, solver_parameters, solver(solver_parameters, &buffer_density, input_conditions_density[j]), output_file_density);
-        output_function(j, solver_parameters, solver(solver_parameters, &buffer_sulfar, input_conditions_sulfar[j]), output_file_sulfar);
+        solver(solver_parameters, buffer.current()[0], buffer.previous()[0], input_conditions_density[j]);
+        solver(solver_parameters, buffer.current()[1], buffer.previous()[1], input_conditions_sulfar[j]);
+        output_function(solver_parameters, buffer, j);
+        buffer.advance(1);
     }
     return 0;
 }
