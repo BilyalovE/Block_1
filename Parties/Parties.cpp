@@ -1,7 +1,7 @@
 ﻿/*!
     \brief Метод характеристик (рассчёт по плотности и сере)
     \author Bilyalov Eldar
-    \version 4 (правильное использование буффера - без скрытого копирования, корректный вывод) 
+    \version 4 (правильное использование буффера - без скрытого копирования, корректный вывод)
     \date 30.12.2023 - 6.01.24
 */
 
@@ -26,8 +26,8 @@ using namespace std;
 struct Pipeline_parameters
 {
     double L = 200;
-    double v = 50; 
-    int T = 10;   
+    double v = 50;
+    int T = 10;
     Pipeline_parameters() = default;
 };
 
@@ -36,16 +36,16 @@ struct Pipeline_parameters
 /// @param number_layers - количесвто слоев рассчёта;
 /// @param dx - величина шага между узлами расчетной сетки, м;
 /// @param dt - шаг во времени из условия Куранта.
-struct Input_solver_parameters 
+struct Input_solver_parameters
 {
-    int n; 
-    int number_layers; 
-    double dx; 
-    double dt; 
+    int n;
+    int number_layers;
+    double dx;
+    double dt;
 };
 
 /// @brief класс Block_1 для решения задач из блока 1 - Модель движения партий
-class Block_1 
+class Block_1
 {
 private:
 public:
@@ -137,22 +137,22 @@ int main(int argc, char** argv)
     /// Вектор содержания серы в нефти входных партий 
     vector <double> input_conditions_sulfar(solver_parameters.number_layers);
     input_conditions_sulfar = { 0.2, 0.1, 0.1, 0.1, 0.25, 0.25, 0.25, 0.25, 0, 0, 0, 0, 0 };
-    
-    /// Генерация файлов
-    string output_file_density = generating_output_file("density", "Плотность");
-    string output_file_sulfar = generating_output_file("sulfar", "Сера");
 
-    // Создаем 2 буфера для решаемой задачи
+    // Создаем  буфер для решаемой задачи
     // 2 - количество слоев в буфере (для метода характеристик достаточно хранить 2 слоя)
     // initial_density_layer - слой, значениями из которого проинициализируются все слои буфера
     // initial_sulfar_layer - слой, значениями из которого проинициализируются все слои буфера
-    ring_buffer_t<vector<double>> buffer_sulfar(2, initial_sulfar_layer);
+    ring_buffer_t<vector<vector<double>>> buffer(2, { initial_density_layer, initial_sulfar_layer });
+
     // Расчёт произвольного числа слоев (solver_parameters.number_layers) через вызов функции  solver в цикле
     /// j - счетчик слоев
-    for (int j{ 0 }; j < solver_parameters.number_layers+1; j++)
+    for (size_t j{ 0 }; j < solver_parameters.number_layers + 1; j++)
     {
-        output_function(j, solver_parameters, solver(solver_parameters, &buffer_density, input_conditions_density[j]), output_file_density);
-        output_function(j, solver_parameters, solver(solver_parameters, &buffer_sulfar, input_conditions_sulfar[j]), output_file_sulfar);
+        //solver(solver_parameters, buffer.current()[0], buffer.previous()[0], input_conditions_density[j]);
+        solver_1.method_characteristic(solver_parameters, buffer.current()[0], buffer.previous()[0], input_conditions_density[j]);
+        solver_1.method_characteristic(solver_parameters, buffer.current()[1], buffer.previous()[1], input_conditions_sulfar[j]);
+        solver_1.output_data(solver_parameters, buffer, j);
+        buffer.advance(1);
     }
     return 0;
 }
