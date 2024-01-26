@@ -3,8 +3,7 @@ import pandas as pd
 from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
 
-rawData = pd.read_csv("C:\\Users\\eldar\\source\\method_characteristics\\Parties\\Output.csv", encoding='windows-1251')
-
+rawData = pd.read_csv(r"D:\source\block_1\method_characteristics\Parties\Output.csv", encoding='windows-1251')
 parametersNames = rawData.columns.tolist()[2:]
 [timeLabel, coordLabel] = rawData.columns.tolist()[:2]
 plotsCount = len(parametersNames)
@@ -25,4 +24,18 @@ def init_func():
         axes[i].set_xlim(xLim)
         axes[i].set_ylim(yLim)
 
-# Добавленная закрывающая скобка
+
+def update_plot(i):
+    init_func()
+    for j in range(len(axes)):
+        coordData = rawData[coordLabel]
+        paramData = rawData[parametersNames[j]]
+        axes[j].plot(coordData[i * data_skip: (i + 1) * data_skip], paramData[i * data_skip: (i + 1) * data_skip], color='k')
+
+anim = FuncAnimation(fig,
+                     update_plot,
+                     frames=len(set(rawData[timeLabel])),
+                     init_func=init_func,
+                     interval=2000, repeat=False)
+ 
+plt.show()
