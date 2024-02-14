@@ -142,7 +142,7 @@ int main(int argc, char** argv)
     // 2 - количество слоев в буфере (для метода характеристик достаточно хранить 2 слоя)
     // initial_density_layer - слой, значениями из которого проинициализируются все слои буфера
     // initial_sulfar_layer - слой, значениями из которого проинициализируются все слои буфера
-    ring_buffer_t<vector<vector<double>>> buffer(2, { initial_density_layer, initial_sulfar_layer });
+    ring_buffer_t <vector<vector<double>>> buffer(2, { initial_density_layer, initial_sulfar_layer });
 
     // Расчёт произвольного числа слоев (solver_parameters.number_layers) через вызов функции  solver в цикле
     /// j - счетчик слоев
