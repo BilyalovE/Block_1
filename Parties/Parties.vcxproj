@@ -134,7 +134,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Block_1_transport_equation.cpp" />
     <ClCompile Include="Parties.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Block_1_transport_equation.h" />
+    <ClInclude Include="Struct.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
