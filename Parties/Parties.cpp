@@ -44,24 +44,23 @@ struct Input_solver_parameters
     double dt;
 };
 
+/// @brief Функция input_data, который рассчитывает входные параметры, необходимые для метода характеристик по исходным параметрам трубопровода
+    /// @param pipeline_characteristics - инициализированная переменная со входными параметрами трубоппровода (тип данных - структура Pipeline_parameters)
+Input_solver_parameters input_data(Pipeline_parameters pipeline_characteristics)
+{
+    // Объявление структуры с именем Input_solver_parametres для переменной solver_parameters
+    Input_solver_parameters solver_parameters;
+    solver_parameters.n = 3;   // - количество точек расчетной сетки;
+    solver_parameters.dx = pipeline_characteristics.L / (solver_parameters.n - 1);  // - количесвто слоев рассчёта;          
+    solver_parameters.dt = solver_parameters.dx / pipeline_characteristics.v;   // - шаг во времени из условия Куранта;                   
+    solver_parameters.number_layers = static_cast<int>(pipeline_characteristics.T / solver_parameters.dt); // - количесвто слоев рассчёта;
+    return solver_parameters;
+}
 /// @brief класс Block_1 для решения задач из блока 1 - Модель движения партий
 class Block_1
 {
-private:
 public:
-    /// @brief Метод input_data, который рассчитывает входные параметры, необходимые для метода характеристик по исходным параметрам трубопровода
-    /// @param pipeline_characteristics - инициализированная переменная со входными параметрами трубоппровода (тип данных - структура Pipeline_parameters)
-    Input_solver_parameters input_data(Pipeline_parameters pipeline_characteristics)
-    {
-        // Объявление структуры с именем Input_solver_parametres для переменной solver_parameters
-        Input_solver_parameters solver_parameters;
-        solver_parameters.n = 3;   // - количество точек расчетной сетки;
-        solver_parameters.dx = pipeline_characteristics.L / (solver_parameters.n - 1);  // - количесвто слоев рассчёта;          
-        solver_parameters.dt = solver_parameters.dx / pipeline_characteristics.v;   // - шаг во времени из условия Куранта;                   
-        solver_parameters.number_layers = static_cast<int>(pipeline_characteristics.T / solver_parameters.dt); // - количесвто слоев рассчёта;
-        return solver_parameters;
-    }
-
+    Block_1(Input_solver_parameters solver_parameters){}
     /// @brief Метод характеристик, рассчитывающий слои
     /// @param solver_parameters - структура параметров, необходимая для алгоритма;
     /// @param buffer - буффер, который для рассчета хранит 2 слоя (текущий и предущий);
@@ -113,8 +112,6 @@ public:
 /// @brief Главная функция, в которой происходит инициализация структур, краевых и начальных условий, а также вызов функции солвера и функции вывода в файл
 int main(int argc, char** argv)
 {
-    // Объявляем объект solver_1 класса block_1
-    Block_1 solver_1;
     /// Объявление структуры с именем Pipeline_parameters для переменной pipeline_characteristics
     Pipeline_parameters  pipeline_characteristics;
     /// Инициализация структуры solver_parameters через вызов функции input_data
@@ -145,7 +142,7 @@ int main(int argc, char** argv)
     // 2 - количество слоев в буфере (для метода характеристик достаточно хранить 2 слоя)
     // initial_density_layer - слой, значениями из которого проинициализируются все слои буфера
     // initial_sulfar_layer - слой, значениями из которого проинициализируются все слои буфера
-    ring_buffer_t<vector<vector<double>>> buffer(2, { initial_density_layer, initial_sulfar_layer });
+    ring_buffer_t <vector<vector<double>>> buffer(2, { initial_density_layer, initial_sulfar_layer });
 
     // Расчёт произвольного числа слоев (solver_parameters.number_layers) через вызов функции  solver в цикле
     /// j - счетчик слоев
