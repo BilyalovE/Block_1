@@ -67,11 +67,12 @@ public:
     /// @param buffer - буффер, который для рассчета хранит 2 слоя (текущий и предущий);
     /// @param left_condition - граничное условие для параметра нефти.
     /// @return previous_layer - возвращает рассчитанный по методу характеристик текущий слой
-    void method_characteristic(Input_solver_parameters solver_parameters, vector<double>& current_layer, vector<double>& previous_layer, double left_condition)
+    /// 
+    void method_characteristic( vector<double>& current_layer, vector<double>& previous_layer, double left_condition)
     {
         // Получение ссылок на текущий и предыдущий слои буфера
 
-        for (size_t i = 1; i < solver_parameters.n; i++)
+        for (size_t i = 1; i < m_solver_parameters.n; i++)
         {
             current_layer[i] = previous_layer[i - 1];
         }
@@ -85,7 +86,7 @@ public:
     /// @param solver_parameters - структура параметров, необходимых для реализации функции солвера ;
     /// @param buffer - буффер, рассчитанный после солвера;
     /// @return  - пустой возврат (вывод в файл рассчитанного слоя - buffer.current()).
-    void output_data(Input_solver_parameters solver_parameters, ring_buffer_t<vector<vector<double>>>& buffer, int i) {
+    void output_data(ring_buffer_t<vector<vector<double>>>& buffer, int i) {
         vector<vector<double>>& previous_layer = buffer.previous();
         //1 слой с записью заголовка
         if (i == 0) {
@@ -93,7 +94,7 @@ public:
             outFile << "Время,Координиата,Плотность,Сера" << endl;
             // Записать значения текущего слоя в файл
             for (size_t j = 0; j < previous_layer[0].size(); j++) {
-                outFile << i * solver_parameters.dt << "," << j * solver_parameters.dx << "," << previous_layer[0][j] << "," << previous_layer[1][j] << endl;
+                outFile << i * m_solver_parameters.dt << "," << j * m_solver_parameters.dx << "," << previous_layer[0][j] << "," << previous_layer[1][j] << endl;
             }
             outFile.close();
         }
@@ -102,7 +103,7 @@ public:
             ofstream outFile("Output.csv", ios::app);
             // Записать значения текущего слоя в файл
             for (size_t j = 0; j < previous_layer[0].size(); j++) {
-                outFile << i * solver_parameters.dt << "," << j * solver_parameters.dx << "," << previous_layer[0][j] << "," << previous_layer[1][j] << endl;
+                outFile << i * m_solver_parameters.dt << "," << j * m_solver_parameters.dx << "," << previous_layer[0][j] << "," << previous_layer[1][j] << endl;
             }
             outFile.close();
         }
@@ -116,8 +117,10 @@ int main(int argc, char** argv)
     Block_1 solver_1;
     /// Объявление структуры с именем Pipeline_parameters для переменной pipeline_characteristics
     Pipeline_parameters  pipeline_characteristics;
-    /// Инициализация структуры solver_parameters через вызов функции input_function 
-    Input_solver_parameters solver_parameters = solver_1.input_data(pipeline_characteristics);
+    /// Инициализация структуры solver_parameters через вызов функции input_data
+    Input_solver_parameters solver_parameters = input_data(pipeline_characteristics);
+    // Объявляем объект solver_1 класса Block_1
+    Block_1 solver_1(solver_parameters);
 
     /// Начальное значение плотности нефти в трубе
     double initial_condition_density = 805;
@@ -148,7 +151,6 @@ int main(int argc, char** argv)
     /// j - счетчик слоев
     for (size_t j{ 0 }; j < solver_parameters.number_layers + 1; j++)
     {
-        //solver(solver_parameters, buffer.current()[0], buffer.previous()[0], input_conditions_density[j]);
         solver_1.method_characteristic(solver_parameters, buffer.current()[0], buffer.previous()[0], input_conditions_density[j]);
         solver_1.method_characteristic(solver_parameters, buffer.current()[1], buffer.previous()[1], input_conditions_sulfar[j]);
         solver_1.output_data(solver_parameters, buffer, j);
