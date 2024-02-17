@@ -13,6 +13,7 @@ int Block_1_transport_equation::getter_number_layers()
     return number_layers;
 }
 
+
 void Block_1_transport_equation::method_characteristic(vector<double>& current_layer, vector<double>& previous_layer, double left_condition)
 {
     // Получение ссылок на текущий и предыдущий слои буфера

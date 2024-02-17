@@ -49,15 +49,16 @@ int main(int argc, char** argv)
     ring_buffer_t <vector<vector<double>>> buffer(2, { initial_density_layer, initial_sulfar_layer });
     // transport_equation (солвер - метод характеристик) - экземпляр класса Block_1
     Block_1_transport_equation transport_equation(pipeline_characteristics, n);
+    /// Число параметров продукта, рассчитываемого по методу характкристик
+    int num_parameters = 2; // скра и плотность
     // Расчёт произвольного числа слоев (solver_parameters.number_layers) через вызов функции  solver в цикле
     /// j - счетчик слоев
-    for (size_t j{ 0 }; j < transport_equation.getter_number_layers() + 1; j++)
-    {
-        transport_equation.method_characteristic(buffer.current()[0], buffer.previous()[0], input_conditions_density[j]);
-        transport_equation.method_characteristic(buffer.current()[1], buffer.previous()[1], input_conditions_sulfar[j]);
+    for (size_t j{ 0 }; j < transport_equation.getter_number_layers() + 1; j++){
+        for (size_t i{ 0 }; i < num_parameters; i++) {
+            transport_equation.method_characteristic(buffer.current()[i], buffer.previous()[i], input_conditions_density[j]);
+        }
         transport_equation.output_data(buffer, j);
-        buffer.advance(1);
-
+        buffer.advance(1);  
     }
     return 0; 
 }
