@@ -1,4 +1,4 @@
-#include "Block_1_transport_equation.h"
+п»ї#include "Block_1_transport_equation.h"
 
 Block_1_transport_equation::Block_1_transport_equation(Pipeline_parameters& pipeline_characteristics, int n)
 {
@@ -16,37 +16,37 @@ int Block_1_transport_equation::getter_number_layers()
 
 void Block_1_transport_equation::method_characteristic(vector<double>& current_layer, vector<double>& previous_layer, double left_condition)
 {
-    // Получение ссылок на текущий и предыдущий слои буфера
+    // РџРѕР»СѓС‡РµРЅРёРµ СЃСЃС‹Р»РѕРє РЅР° С‚РµРєСѓС‰РёР№ Рё РїСЂРµРґС‹РґСѓС‰РёР№ СЃР»РѕРё Р±СѓС„РµСЂР°
 
     for (size_t i = 1; i < n; i++)
     {
         current_layer[i] = previous_layer[i - 1];
     }
-    // Слой current_layer на следующем шаге должен стать предыдущим. 
-    // Для этого сместим индекс текущего слоя в буфере на единицу
+    // РЎР»РѕР№ current_layer РЅР° СЃР»РµРґСѓСЋС‰РµРј С€Р°РіРµ РґРѕР»Р¶РµРЅ СЃС‚Р°С‚СЊ РїСЂРµРґС‹РґСѓС‰РёРј. 
+    // Р”Р»СЏ СЌС‚РѕРіРѕ СЃРјРµСЃС‚РёРј РёРЅРґРµРєСЃ С‚РµРєСѓС‰РµРіРѕ СЃР»РѕСЏ РІ Р±СѓС„РµСЂРµ РЅР° РµРґРёРЅРёС†Сѓ
     current_layer[0] = left_condition;
 }
 
 void Block_1_transport_equation::output_data(ring_buffer_t<vector<vector<double>>>& buffer, int i)
 {
-    // Используем пространство имен std
+    // РСЃРїРѕР»СЊР·СѓРµРј РїСЂРѕСЃС‚СЂР°РЅСЃС‚РІРѕ РёРјРµРЅ std
     using namespace std;
 
     vector<vector<double>>& previous_layer = buffer.previous();
-    //1 слой с записью заголовка
+    //1 СЃР»РѕР№ СЃ Р·Р°РїРёСЃСЊСЋ Р·Р°РіРѕР»РѕРІРєР°
     if (i == 0) {
         ofstream outFile("Output.csv");
-        outFile << "Время,Координата,Плотность,Сера" << endl;
-        // Записать значения текущего слоя в файл
+        outFile << "Р’СЂРµРјСЏ,РљРѕРѕСЂРґРёРЅР°С‚Р°,РџР»РѕС‚РЅРѕСЃС‚СЊ,РЎРµСЂР°" << endl;
+        // Р—Р°РїРёСЃР°С‚СЊ Р·РЅР°С‡РµРЅРёСЏ С‚РµРєСѓС‰РµРіРѕ СЃР»РѕСЏ РІ С„Р°Р№Р»
         for (size_t j = 0; j < previous_layer[0].size(); j++) {
             outFile << i * dt << "," << j * dx << "," << previous_layer[0][j] << "," << previous_layer[1][j]  << endl;
         }
         outFile.close();
     }
-    //последующие слои
+    //РїРѕСЃР»РµРґСѓСЋС‰РёРµ СЃР»РѕРё
     else {
         ofstream outFile("Output.csv", ios::app);
-        // Записать значения текущего слоя в файл
+        // Р—Р°РїРёСЃР°С‚СЊ Р·РЅР°С‡РµРЅРёСЏ С‚РµРєСѓС‰РµРіРѕ СЃР»РѕСЏ РІ С„Р°Р№Р»
         for (size_t j = 0; j < previous_layer[0].size(); j++) {
             outFile << i * dt << "," << j * dx << "," << previous_layer[0][j] << "," << previous_layer[1][j]  << endl;
         }
