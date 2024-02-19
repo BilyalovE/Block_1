@@ -39,7 +39,7 @@ void Block_1_transport_equation::output_data(ring_buffer_t<vector<vector<double>
         outFile << "Время,Координата,Плотность,Сера" << endl;
         // Записать значения текущего слоя в файл
         for (size_t j = 0; j < previous_layer[0].size(); j++) {
-            outFile << i * dt << "," << j * dx << "," << previous_layer[0][j] << "," << previous_layer[1][j] << endl;
+            outFile << i * dt << "," << j * dx << "," << previous_layer[0][j] << "," << previous_layer[1][j]  << endl;
         }
         outFile.close();
     }
@@ -48,7 +48,7 @@ void Block_1_transport_equation::output_data(ring_buffer_t<vector<vector<double>
         ofstream outFile("Output.csv", ios::app);
         // Записать значения текущего слоя в файл
         for (size_t j = 0; j < previous_layer[0].size(); j++) {
-            outFile << i * dt << "," << j * dx << "," << previous_layer[0][j] << "," << previous_layer[1][j] << endl;
+            outFile << i * dt << "," << j * dx << "," << previous_layer[0][j] << "," << previous_layer[1][j]  << endl;
         }
         outFile.close();
     }

@@ -41,22 +41,26 @@ int main(int argc, char** argv)
     vector <double> initial_sulfar_layer(n, initial_condition_sulfar);
     /// Вектор содержания серы в нефти входных партий 
     vector <double> input_conditions_sulfar = { 0.2, 0.1, 0.1, 0.1, 0.25, 0.25, 0.25, 0.25 };
+    // Число рассчитываемых параметров (2 параметра - сера и плотность)
+    int num_parameters = 2; 
     // Вектор векторов параметров нефти входных партий
-    vector <vector<double>> input_conditions = {input_conditions_density, input_conditions_sulfar};
+    vector <vector<double>> input_conditions(num_parameters, vector<double>(input_conditions_sulfar.size()));
+    input_conditions = { input_conditions_density, input_conditions_sulfar };
     // Создаем  буфер для решаемой задачи
-    // 2 - количество слоев в буфере (для метода характеристик достаточно хранить 2 слоя)
+    // number_layers_buffer - количество слоев в буфере (для метода характеристик достаточно хранить 2 слоя - предыдущий и текущий слои)
+    int number_layers_buffer = 2;
     // initial_density_layer - слой, значениями из которого проинициализируются все слои буфера
     // initial_sulfar_layer - слой, значениями из которого проинициализируются все слои буфера
-    ring_buffer_t <vector<vector<double>>> buffer(2, { initial_density_layer, initial_sulfar_layer });
+    ring_buffer_t <vector<vector<double>>> buffer(number_layers_buffer, { initial_density_layer, initial_sulfar_layer });
     // transport_equation (солвер - метод характеристик) - экземпляр класса Block_1
     Block_1_transport_equation transport_equation(pipeline_characteristics, n);
     /// Число параметров продукта, рассчитываемого по методу характеристик
-    int num_parameters = 2; // сера и плотность
-    // Расчёт произвольного числа слоев (solver_parameters.number_layers) через вызов функции  solver в цикле
+
+    // Расчёт произвольного числа слоев (solver_parameters.number_layers) через вызов функции solver в цикле
     /// j - счетчик слоев
     for (size_t j{ 0 }; j < transport_equation.getter_number_layers() + 1; j++){
         for (size_t i{ 0 }; i < num_parameters; i++) {
-            transport_equation.method_characteristic(buffer.current()[i], buffer.previous()[i], input_conditions[i][j]);
+             transport_equation.method_characteristic(buffer.current()[i], buffer.previous()[i], input_conditions[i][j]);
         }
         transport_equation.output_data(buffer, j);
         buffer.advance(1);  
