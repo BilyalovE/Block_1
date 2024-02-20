@@ -7,7 +7,4 @@
 /.vs
 /x64/Debug
 OutputGraph.py
-merge_output.py
-density.csv
-merged_result.csv
-sulfar.csv
+Output.csv
