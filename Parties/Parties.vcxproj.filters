@@ -18,5 +18,16 @@
     <ClCompile Include="Parties.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Block_1_transport_equation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Block_1_transport_equation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Struct.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
