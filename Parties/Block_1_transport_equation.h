@@ -30,7 +30,7 @@ public:
     /// @param buffer - буфер, который для расчёта хранит 2 слоя (текущий и прядущий);
     /// @param left_condition - граничное условие для параметра нефти.
     /// @return previous_layer - возвращает рассчитанный по методу характеристик текущий слой
-    void method_characteristic(vector<double>& current_layer, vector<double>& previous_layer, double left_condition);
+    void method_characteristic(vector<double>& current_layer, vector<double>& previous_layer, double left_condition) const;
 
     /// @brief Метод output_data, который выводит рассчитанные по методу характеристик слои в файл формата csv
     /// @param i - счётчик слоев;

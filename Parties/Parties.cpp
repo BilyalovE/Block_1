@@ -9,7 +9,6 @@
 #include <iostream>
 #include <vector>
 #include <iomanip>
-#include <locale.h>
 #include <fixed/fixed.h>
 #include <pde_solvers/pde_solvers.h>
 #include "Block_1_transport_equation.h"
