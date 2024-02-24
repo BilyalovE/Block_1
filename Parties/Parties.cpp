@@ -9,10 +9,23 @@
 #include <iostream>
 #include <vector>
 #include <iomanip>
+#include <locale.h>
 #include <fixed/fixed.h>
 #include <pde_solvers/pde_solvers.h>
 #include "Block_1_transport_equation.h"
-#include "struct.h"
+
+
+
+/// @brief Pipeline_parameters - структура исходных параметров трубопровода
+/// @param L - длина трубопровода, м;
+/// @param v - скорость течения жидкости, м/с;
+/// @param T - период моделирования, c.
+struct Pipeline_parameters
+{
+    double L;
+    double v;
+    int T;
+};
 
 /// @brief Главная функция, в которой происходит инициализация структур, краевых и начальных условий, а также вызов функции солвера и функции вывода в файл
 int main(int argc, char** argv)
@@ -20,11 +33,18 @@ int main(int argc, char** argv)
     // Используем пространство имен std
     using namespace std;
 
+    setlocale(LC_ALL, "rus");
     /// Объявление структуры с именем Pipeline_parameters для переменной pipeline_characteristics
     Pipeline_parameters  pipeline_characteristics = {200, 50, 10};
 
     // n - количество точек расчетной сетки;
     int n = 3;
+    // dx - величина шага между узлами расчетной сетки, м;
+    double dx = pipeline_characteristics.L / (n - 1);
+    // dt - шаг во времени из условия Куранта.
+    double dt = dx / pipeline_characteristics.v;
+    // number_layers - количество слоев расчёта;
+    int number_layers = static_cast<int>(pipeline_characteristics.T / dt);
 
     /// Начальное значение плотности нефти в трубе
     double initial_condition_density = 805;
@@ -53,12 +73,12 @@ int main(int argc, char** argv)
     // initial_sulfar_layer - слой, значениями из которого проинициализируются все слои буфера
     ring_buffer_t <vector<vector<double>>> buffer(number_layers_buffer, { initial_density_layer, initial_sulfar_layer });
     // transport_equation (солвер - метод характеристик) - экземпляр класса Block_1
-    Block_1_transport_equation transport_equation(pipeline_characteristics, n);
+    Block_1_transport_equation transport_equation(dx, dt, n);
     /// Число параметров продукта, рассчитываемого по методу характеристик
 
     // Расчёт произвольного числа слоев (solver_parameters.number_layers) через вызов функции solver в цикле
     /// j - счетчик слоев
-    for (size_t j{ 0 }; j < transport_equation.getter_number_layers() + 1; j++){
+    for (size_t j{ 0 }; j < number_layers + 1; j++){
         for (size_t i{ 0 }; i < num_parameters; i++) {
              transport_equation.method_characteristic(buffer.current()[i], buffer.previous()[i], input_conditions[i][j]);
         }
