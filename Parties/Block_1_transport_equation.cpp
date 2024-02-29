@@ -1,10 +1,12 @@
 ﻿#include "Block_1_transport_equation.h"
 
-Block_1_transport_equation::Block_1_transport_equation(double dx, double speed, int n)
+Block_1_transport_equation::Block_1_transport_equation(Pipeline_parameters& pipeline_characteristics,int n, int j)
 {
     this->n = n;
+    this->j = j;
     this->dx = dx;
     this->speed = speed;
+    this->pipeline_characteristics = pipeline_characteristics;
 }
 
 void Block_1_transport_equation::method_characteristic(vector<double>& current_layer, vector<double>& previous_layer, double left_condition) const
@@ -20,6 +22,29 @@ void Block_1_transport_equation::method_characteristic(vector<double>& current_l
     current_layer[0] = left_condition;
 }
 
+//vector <double> Block_1_transport_equation::get_speed() {
+//    double square = pipeline_characteristics.get_inner_square();
+//    int size_array_Q = pipeline_characteristics.Q.size();
+//    vector <double> speed(size_array_Q);
+//    for (int i = 0; i < size_array_Q; i++) {
+//        speed[i] = (pipeline_characteristics.Q)[i] / square;
+//    }
+//    return speed;
+//}
+
+double Block_1_transport_equation::get_speed() {
+    double square = pipeline_characteristics.get_inner_square();
+    double speed;
+    if (j == 0) {
+        speed = (pipeline_characteristics.Q)[0] / square;
+    }
+    else {
+        interpolation_flow();
+    }
+    
+    return speed;
+}
+
 double Block_1_transport_equation::get_dt(const int j)
 {
     if (j > 0) { 
@@ -30,6 +55,7 @@ double Block_1_transport_equation::get_dt(const int j)
     }
     return dt;
 }
+
 
 /// <summary>
 /// 
@@ -64,10 +90,18 @@ void Block_1_transport_equation::output_data(ring_buffer_t<vector<vector<double>
     }
 }
 
-void Block_1_transport_equation::interpolation_flow(const Pipeline_parameters& pipeline_characteristics, double dt)
+void Block_1_transport_equation::interpolation_flow()
 {
     double interpolation_Q;
     vector <double> t = pipeline_characteristics.t;
     vector <double> Q = pipeline_characteristics.Q;
-    interpolation_Q = (dt - t[0]) / (t[1] - t[0]) * (Q[1] - Q[0]) +Q[0];
+    if (n > 0) {
+        if (dt <= t[n]) {
+            interpolation_Q = (dt - t[n - 1]) / (t[n] - t[n - 1]) * (Q[n] - Q[n - 1]) + Q[n - 1];
+        }
+        else {
+            n += 1;
+            interpolation_Q = (dt - t[n - 1]) / (t[n] - t[n - 1]) * (Q[n] - Q[n - 1]) + Q[n - 1];
+        }
+    }
 }

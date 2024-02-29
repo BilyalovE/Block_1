@@ -15,17 +15,6 @@
 #include "Struct_pipe.h"
 
 
-
-vector <double> get_speed(Pipeline_parameters  &pipeline_characteristics) {
-    double square = pipeline_characteristics.get_inner_square();
-    int size_array_Q = 3;
-    vector <double> speed(size_array_Q);
-    for (int i = 0; i < size_array_Q; i++) {
-        speed[i] = (pipeline_characteristics.Q)[i] / square;
-    }
-    return speed;
-}
-
 /// @brief Главная функция, в которой происходит инициализация структур, краевых и начальных условий, а также вызов функции солвера и функции вывода в файл
 int main(int argc, char** argv)
 {
@@ -35,10 +24,8 @@ int main(int argc, char** argv)
     setlocale(LC_ALL, "rus");
     /// Объявление структуры с именем Pipeline_parameters для переменной pipeline_characteristics
     Pipeline_parameters  pipeline_characteristics = { 200, 0.7, 0.01, { 0.9, 0.99, 0.97 }, {0, 30, 50}, 100 };
-    int size = pipeline_characteristics.Q.size();
     // n - количество точек расчетной сетки;
     int n = 3;
-    vector <double> speed = get_speed(pipeline_characteristics);
     // dx - величина шага между узлами расчетной сетки, м;
     double dx = pipeline_characteristics.L / (n - 1);
     /// Начальное значение плотности нефти в трубе
@@ -67,21 +54,23 @@ int main(int argc, char** argv)
     // initial_density_layer - слой, значениями из которого проинициализируются все слои буфера
     // initial_sulfar_layer - слой, значениями из которого проинициализируются все слои буфера
     ring_buffer_t <vector<vector<double>>> buffer(number_layers_buffer, { initial_density_layer, initial_sulfar_layer });
-    // transport_equation (солвер - метод характеристик) - экземпляр класса Block_1
-    Block_1_transport_equation transport_equation(dx, speed[0], n);
     /// Число параметров продукта, рассчитываемого по методу характеристик
-
     // Расчёт произвольного числа слоев (solver_parameters.number_layers) через вызов функции solver в цикле
     /// @param sum_dt -  сумма времени моделирования 
     double sum_dt = 0;
     /// @param j - счетчик слоев
     int j = 0;
     do {
+        // transport_equation (солвер - метод характеристик) - экземпляр класса Block_1
+        Block_1_transport_equation transport_equation(pipeline_characteristics, n, j);
         for (size_t i{ 0 }; i < num_parameters; i++) {
             transport_equation.method_characteristic(buffer.current()[i], buffer.previous()[i], input_conditions[i][j]);
         }
         sum_dt += transport_equation.get_dt(j);
+        transport_equation.interpolation_flow(sum_dt, j);
         transport_equation.output_data(buffer, j);
+
+        transport_equation.get_speed();
         buffer.advance(1);
         j++;
     } while (sum_dt <= pipeline_characteristics.T);

@@ -19,9 +19,9 @@ struct Pipeline_parameters
         double S = M_PI * inner_diametr * inner_diametr / 4;
         return S;
     };
-    /// @param Q - синтетический ряд изменения расхода
+    /// @param Q - синтетический ряд изменения расхода, где нулевой элемент массива Q - расход в начале моделирования (t = 0)
     vector <double> Q = {};
-    /// @param t - временной ряд изменения расхода
+    /// @param t - временной ряд изменения расхода, где нулевой элемент массива t = 0
     vector <double> t = {};
     /// @param T - период моделирования, c.
     int T;
