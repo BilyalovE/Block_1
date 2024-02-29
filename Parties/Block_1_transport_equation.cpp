@@ -20,7 +20,7 @@ void Block_1_transport_equation::method_characteristic(vector<double>& current_l
     current_layer[0] = left_condition;
 }
 
-void Block_1_transport_equation::output_data(ring_buffer_t<vector<vector<double>>>& buffer, int i)
+void Block_1_transport_equation::output_data(ring_buffer_t<vector<vector<double>>>& buffer, int i) const
 {
     // Используем пространство имен std
     using namespace std;

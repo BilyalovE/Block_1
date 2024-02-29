@@ -18,13 +18,35 @@
 /// @brief Pipeline_parameters - структура исходных параметров трубопровода
 /// @param L - длина трубопровода, м;
 /// @param v - скорость течения жидкости, м/с;
+/// @param D - внешний диаметр трубы, м;
+/// @param d - толщина стенки трубыб м;
 /// @param T - период моделирования, c.
 struct Pipeline_parameters
 {
     double L;
-    double v;
+    double D;
+    double d;
+    double get_inner_diametr() const {
+        return D - 2 * d;
+    };
+    double get_inner_square() const {
+        double inner_diametr = get_inner_diametr();
+        double S = M_PI * inner_diametr * inner_diametr / 4;
+        return S;
+    };
+    vector <double> Q = {};
+    vector <double> t = {};
     int T;
 };
+
+vector <double> get_speed(Pipeline_parameters  &pipeline_characteristics) {
+    double square = pipeline_characteristics.get_inner_square();
+    vector <double> speed = {};
+    for (int i{ 0 }; i < pipeline_characteristics.Q.size(); i++) {
+        speed[i] = pipeline_characteristics.Q[i] / square;
+    }
+    return speed;
+}
 
 /// @brief Главная функция, в которой происходит инициализация структур, краевых и начальных условий, а также вызов функции солвера и функции вывода в файл
 int main(int argc, char** argv)
@@ -34,14 +56,14 @@ int main(int argc, char** argv)
 
     setlocale(LC_ALL, "rus");
     /// Объявление структуры с именем Pipeline_parameters для переменной pipeline_characteristics
-    Pipeline_parameters  pipeline_characteristics = {200, 50, 10};
-
+    Pipeline_parameters  pipeline_characteristics = { 200, 0.7, 0.01, { 0.9, 0.99, 0.97 }, { 10, 15, 20 }, 60 };
+    vector<double> speed = get_speed(pipeline_characteristics);
     // n - количество точек расчетной сетки;
     int n = 3;
     // dx - величина шага между узлами расчетной сетки, м;
     double dx = pipeline_characteristics.L / (n - 1);
     // dt - шаг во времени из условия Куранта.
-    double dt = dx / pipeline_characteristics.v;
+    double dt = dx / speed[0];
     // number_layers - количество слоев расчёта;
     int number_layers = static_cast<int>(pipeline_characteristics.T / dt);
 

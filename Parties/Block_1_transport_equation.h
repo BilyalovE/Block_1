@@ -37,5 +37,5 @@ public:
     /// @param solver_parameters - структура параметров, необходимых для реализации функции солвера ;
     /// @param buffer - буфер, рассчитанный после солвера;
     /// @return  - пустой возврат (вывод в файл рассчитанного слоя - buffer.current()).
-    void output_data(ring_buffer_t<vector<vector<double>>>& buffer, int i);
+    void output_data(ring_buffer_t<vector<vector<double>>>& buffer, int i) const;
 };
