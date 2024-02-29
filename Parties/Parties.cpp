@@ -66,12 +66,9 @@ int main(int argc, char** argv)
         for (size_t i{ 0 }; i < num_parameters; i++) {
             transport_equation.method_characteristic(buffer.current()[i], buffer.previous()[i], input_conditions[i][j]);
         }
-        sum_dt += transport_equation.get_dt(j);
-        transport_equation.interpolation_flow(sum_dt, j);
-        transport_equation.output_data(buffer, j);
-
-        transport_equation.get_speed();
+        transport_equation.output_data(buffer, sum_dt);
         buffer.advance(1);
+        sum_dt += transport_equation.get_dt();
         j++;
     } while (sum_dt <= pipeline_characteristics.T);
 

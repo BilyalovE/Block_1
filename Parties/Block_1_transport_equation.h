@@ -45,14 +45,14 @@ public:
     double get_speed();
     
     /// @brief Метод получения шага времени dt
-    double get_dt(const int j);
+    double get_dt();
 
     /// @brief Метод output_data, который выводит рассчитанные по методу характеристик слои в файл формата csv
     /// @param i - счётчик слоев;
     /// @param solver_parameters - структура параметров, необходимых для реализации функции солвера ;
     /// @param buffer - буфер, рассчитанный после солвера;
     /// @return  - пустой возврат (вывод в файл рассчитанного слоя - buffer.current()).
-    void output_data(ring_buffer_t<vector<vector<double>>>& buffer, int i) const;
+    void output_data(ring_buffer_t<vector<vector<double>>>& buffer, double sum_dt) const;
 
-    void interpolation_flow();
+    double interpolation_flow();
 };
