@@ -12,38 +12,16 @@
 #include <fixed/fixed.h>
 #include <pde_solvers/pde_solvers.h>
 #include "Block_1_transport_equation.h"
+#include "Struct_pipe.h"
 
 
-
-/// @brief Pipeline_parameters - структура исходных параметров трубопровода
-/// @param L - длина трубопровода, м;
-/// @param v - скорость течения жидкости, м/с;
-/// @param D - внешний диаметр трубы, м;
-/// @param d - толщина стенки трубыб м;
-/// @param T - период моделирования, c.
-struct Pipeline_parameters
-{
-    double L;
-    double D;
-    double d;
-    double get_inner_diametr() const {
-        return D - 2 * d;
-    };
-    double get_inner_square() const {
-        double inner_diametr = get_inner_diametr();
-        double S = M_PI * inner_diametr * inner_diametr / 4;
-        return S;
-    };
-    vector <double> Q = {};
-    vector <double> t = {};
-    int T;
-};
 
 vector <double> get_speed(Pipeline_parameters  &pipeline_characteristics) {
     double square = pipeline_characteristics.get_inner_square();
-    vector <double> speed = {};
-    for (int i{ 0 }; i < pipeline_characteristics.Q.size(); i++) {
-        speed[i] = pipeline_characteristics.Q[i] / square;
+    int size_array_Q = 3;
+    vector <double> speed(size_array_Q);
+    for (int i = 0; i < size_array_Q; i++) {
+        speed[i] = (pipeline_characteristics.Q)[i] / square;
     }
     return speed;
 }
@@ -56,17 +34,13 @@ int main(int argc, char** argv)
 
     setlocale(LC_ALL, "rus");
     /// Объявление структуры с именем Pipeline_parameters для переменной pipeline_characteristics
-    Pipeline_parameters  pipeline_characteristics = { 200, 0.7, 0.01, { 0.9, 0.99, 0.97 }, { 10, 15, 20 }, 60 };
-    vector<double> speed = get_speed(pipeline_characteristics);
+    Pipeline_parameters  pipeline_characteristics = { 200, 0.7, 0.01, { 0.9, 0.99, 0.97 }, {0, 30, 50}, 100 };
+    int size = pipeline_characteristics.Q.size();
     // n - количество точек расчетной сетки;
     int n = 3;
+    vector <double> speed = get_speed(pipeline_characteristics);
     // dx - величина шага между узлами расчетной сетки, м;
     double dx = pipeline_characteristics.L / (n - 1);
-    // dt - шаг во времени из условия Куранта.
-    double dt = dx / speed[0];
-    // number_layers - количество слоев расчёта;
-    int number_layers = static_cast<int>(pipeline_characteristics.T / dt);
-
     /// Начальное значение плотности нефти в трубе
     double initial_condition_density = 805;
 
@@ -94,17 +68,23 @@ int main(int argc, char** argv)
     // initial_sulfar_layer - слой, значениями из которого проинициализируются все слои буфера
     ring_buffer_t <vector<vector<double>>> buffer(number_layers_buffer, { initial_density_layer, initial_sulfar_layer });
     // transport_equation (солвер - метод характеристик) - экземпляр класса Block_1
-    Block_1_transport_equation transport_equation(dx, dt, n);
+    Block_1_transport_equation transport_equation(dx, speed[0], n);
     /// Число параметров продукта, рассчитываемого по методу характеристик
 
     // Расчёт произвольного числа слоев (solver_parameters.number_layers) через вызов функции solver в цикле
-    /// j - счетчик слоев
-    for (size_t j{ 0 }; j < number_layers + 1; j++){
+    /// @param sum_dt -  сумма времени моделирования 
+    double sum_dt = 0;
+    /// @param j - счетчик слоев
+    int j = 0;
+    do {
         for (size_t i{ 0 }; i < num_parameters; i++) {
-             transport_equation.method_characteristic(buffer.current()[i], buffer.previous()[i], input_conditions[i][j]);
+            transport_equation.method_characteristic(buffer.current()[i], buffer.previous()[i], input_conditions[i][j]);
         }
+        sum_dt += transport_equation.get_dt(j);
         transport_equation.output_data(buffer, j);
-        buffer.advance(1);  
-    }
+        buffer.advance(1);
+        j++;
+    } while (sum_dt <= pipeline_characteristics.T);
+
     return 0; 
 }

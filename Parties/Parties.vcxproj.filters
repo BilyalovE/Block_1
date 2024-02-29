@@ -26,5 +26,8 @@
     <ClInclude Include="Block_1_transport_equation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Struct_pipe.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
