@@ -1,8 +1,8 @@
 ﻿/*!
     \ brief Метод характеристик (расчёт по плотности и сере)
     \ author Bilyalov Eldar
-    \ version 5 (Исправлен класс, сделан многофайловый проект)
-    \ date 20.02.24
+    \ version 6.0 (Модель с переменным шагом по времени)
+    \ date 01.03.24
 */
 
 // Подключаем необходимые библиотеки
@@ -36,11 +36,11 @@ int main(int argc, char** argv)
     /// Начальный слой по плотности
     vector <double> initial_density_layer(n, initial_condition_density);
     /// Вектор, содержащий значения плотностей нефти входных партий 
-    vector <double> input_conditions_density = { 880, 870, 870, 870, 880, 880, 880, 880 };
+    vector <double> input_conditions_density = {880, 870, 870, 870, 880, 880, 880, 880, 0 };
     /// Начальный слой по сере
     vector <double> initial_sulfar_layer(n, initial_condition_sulfar);
     /// Вектор содержания серы в нефти входных партий 
-    vector <double> input_conditions_sulfar = { 0.2, 0.1, 0.1, 0.1, 0.25, 0.25, 0.25, 0.25 };
+    vector <double> input_conditions_sulfar = {0.2, 0.1, 0.1, 0.1, 0.25, 0.25, 0.25, 0.25, 0 };
     // Число рассчитываемых параметров (2 параметра - сера и плотность)
     int num_parameters = 2; 
     // Вектор векторов параметров нефти входных партий
@@ -61,13 +61,21 @@ int main(int argc, char** argv)
     do {
         // transport_equation (солвер - метод характеристик) - экземпляр класса Block_1
         Block_1_transport_equation transport_equation(pipeline_characteristics, n, j);
-        for (size_t i{ 0 }; i < num_parameters; i++) {
-            transport_equation.method_characteristic(buffer.current()[i], buffer.previous()[i], input_conditions[i][j]);
+        if (j < input_conditions_density.size()){
+            for (size_t i{ 0 }; i < num_parameters; i++) {
+                transport_equation.method_characteristic(buffer.current()[i], buffer.previous()[i], input_conditions[i][j]);
+            }
+        }
+        else {
+            for (size_t i{ 0 }; i < num_parameters; i++) {
+                double empty_pipe{ 0 };
+                transport_equation.method_characteristic(buffer.current()[i], buffer.previous()[i], empty_pipe);
+            }
         }
         transport_equation.output_data(buffer, sum_dt);
         buffer.advance(1);
         sum_dt += transport_equation.get_dt();
-        std::cout << j;
+        std::cout << j << std::endl;
         j++;
         
     } while (sum_dt <= pipeline_characteristics.T);
