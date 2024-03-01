@@ -9,11 +9,13 @@ struct Pipeline_parameters
     double L;
     /// @param D - внешний диаметр трубы, м;
     double D;
-    /// @param d - толщина стенки трубыб м;
+    /// @param d - толщина стенки трубы, м;
     double d;
+    /// @brief get_inner_diametr - функция, рассчитывающая внутренний диаметр трубы
     double get_inner_diametr() const {
         return D - 2 * d;
     };
+    /// @brief get_inner_square - функция, рассчитывающая площадь сечения трубы
     double get_inner_square() const {
         double inner_diametr = get_inner_diametr();
         double S = M_PI * inner_diametr * inner_diametr / 4;

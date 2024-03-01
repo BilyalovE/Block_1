@@ -26,33 +26,29 @@ class Block_1_transport_equation
     /// @param pipeline_characteristics - параметры трубопровода
     Pipeline_parameters pipeline_characteristics;
 
-    
-
 public:
     /// @brief Конструктор класса Block_1
     /// @param pipeline_characteristics - Структура исходных параметров трубопровода
     /// @param n - количество точек расчетной сетки;
+    /// @param j - счетчик текущего слоя
     Block_1_transport_equation(Pipeline_parameters& pipeline_characteristics, int n, int j);
 
-    /// @brief Метод характеристик, рассчитывающий слои
+    /// @brief method_characteristic - метод характеристик, рассчитывающий слои
     /// @param solver_parameters - структура параметров, необходимая для алгоритма;
     /// @param buffer - буфер, который для расчёта хранит 2 слоя (текущий и прядущий);
     /// @param left_condition - граничное условие для параметра нефти.
     /// @return previous_layer - возвращает рассчитанный по методу характеристик текущий слой
     void method_characteristic(vector<double>& current_layer, vector<double>& previous_layer, double left_condition) const;
 
-    /// @brief Метод расчета скорости по расходу (расход может быть интерполирован)
+    /// @brief get_speed - метод расчета скорости по расходу (расход может быть интерполирован)
     double get_speed();
     
-    /// @brief Метод получения шага времени dt
+    /// @brief get_dt - метод получения шага времени dt
     double get_dt();
 
-    /// @brief Метод output_data, который выводит рассчитанные по методу характеристик слои в файл формата csv
-    /// @param i - счётчик слоев;
-    /// @param solver_parameters - структура параметров, необходимых для реализации функции солвера ;
-    /// @param buffer - буфер, рассчитанный после солвера;
-    /// @return  - пустой возврат (вывод в файл рассчитанного слоя - buffer.current()).
+    /// @brief output_data - метод вывода слоев в файл формата csv
     void output_data(ring_buffer_t<vector<vector<double>>>& buffer, double sum_dt) const;
 
+    /// @brief interpolation_flow - метод линейной интерполяции расхода
     double interpolation_flow();
 };

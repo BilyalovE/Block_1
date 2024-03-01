@@ -1,7 +1,7 @@
 ﻿/*!
     \ brief Метод характеристик (расчёт по плотности и сере)
     \ author Bilyalov Eldar
-    \ version 6.0 (Модель с переменным шагом по времени)
+    \ version 6.0 (Модель с переменным шагом по времени / рефакторинг)
     \ date 01.03.24
 */
 
@@ -22,45 +22,42 @@ int main(int argc, char** argv)
     using namespace std;
 
     setlocale(LC_ALL, "rus");
-    /// Объявление структуры с именем Pipeline_parameters для переменной pipeline_characteristics
+    /// @param Объявление структуры с именем Pipeline_parameters для переменной pipeline_characteristics
     Pipeline_parameters  pipeline_characteristics = { 200, 0.7, 0.01, { 0.9, 0.99, 0.97, 0.8, 1, 1.2, 1.6 }, {0, 30, 50, 200, 450, 787, 965}, 700 };
-    // n - количество точек расчетной сетки;
+    /// @param - количество точек расчетной сетки;
     int n = 10;
-    /// Начальное значение плотности нефти в трубе
+    /// @param Начальное значение плотности нефти в трубе
     double initial_condition_density = 805;
-
-    /// Начальное содержание серы в нефти в трубе
+    /// @param Начальное содержание серы в нефти в трубе
     double initial_condition_sulfar = 0.15;
 
     /// Предполагаем, что в начальный момент времени всю трубу заполняют нефть с начальными параметрами initial_condition_density
-    /// Начальный слой по плотности
+    /// @param Начальный слой по плотности
     vector <double> initial_density_layer(n, initial_condition_density);
-    /// Вектор, содержащий значения плотностей нефти входных партий 
+    /// @param Вектор, содержащий значения плотностей нефти входных партий 
     vector <double> input_conditions_density = {880, 870, 870, 870, 880, 880, 880, 880, 0 };
-    /// Начальный слой по сере
+    /// @param Начальный слой по сере
     vector <double> initial_sulfar_layer(n, initial_condition_sulfar);
-    /// Вектор содержания серы в нефти входных партий 
+    /// @param Вектор содержания серы в нефти входных партий 
     vector <double> input_conditions_sulfar = {0.2, 0.1, 0.1, 0.1, 0.25, 0.25, 0.25, 0.25, 0 };
-    // Число рассчитываемых параметров (2 параметра - сера и плотность)
+    /// @param Число рассчитываемых параметров (2 параметра - сера и плотность)
     int num_parameters = 2; 
-    // Вектор векторов параметров нефти входных партий
+    /// @param Вектор векторов параметров нефти входных партий
     vector <vector<double>> input_conditions(num_parameters, vector<double>(input_conditions_sulfar.size()));
     input_conditions = { input_conditions_density, input_conditions_sulfar };
     // Создаем  буфер для решаемой задачи
-    // number_layers_buffer - количество слоев в буфере (для метода характеристик достаточно хранить 2 слоя - предыдущий и текущий слои)
+    /// @param number_layers_buffer - количество слоев в буфере (для метода характеристик достаточно хранить 2 слоя - предыдущий и текущий слои)
     int number_layers_buffer = 2;
-    // initial_density_layer - слой, значениями из которого проинициализируются все слои буфера
-    // initial_sulfar_layer - слой, значениями из которого проинициализируются все слои буфера
     ring_buffer_t <vector<vector<double>>> buffer(number_layers_buffer, { initial_density_layer, initial_sulfar_layer });
-    /// Число параметров продукта, рассчитываемого по методу характеристик
     // Расчёт произвольного числа слоев (solver_parameters.number_layers) через вызов функции solver в цикле
     /// @param sum_dt -  сумма времени моделирования 
     double sum_dt = 0;
     /// @param j - счетчик слоев
     int j = 0;
     do {
-        // transport_equation (солвер - метод характеристик) - экземпляр класса Block_1
+        /// @param transport_equation (солвер - метод характеристик) - экземпляр класса Block_1
         Block_1_transport_equation transport_equation(pipeline_characteristics, n, j);
+        // Проверка выхода за границы массива входных параметров нефти
         if (j < input_conditions_density.size()){
             for (size_t i{ 0 }; i < num_parameters; i++) {
                 transport_equation.method_characteristic(buffer.current()[i], buffer.previous()[i], input_conditions[i][j]);
@@ -76,8 +73,6 @@ int main(int argc, char** argv)
         buffer.advance(1);
         sum_dt += transport_equation.get_dt();
         j++;
-        
     } while (sum_dt <= pipeline_characteristics.T);
-
     return 0; 
 }
