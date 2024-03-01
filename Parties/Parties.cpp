@@ -23,11 +23,9 @@ int main(int argc, char** argv)
 
     setlocale(LC_ALL, "rus");
     /// Объявление структуры с именем Pipeline_parameters для переменной pipeline_characteristics
-    Pipeline_parameters  pipeline_characteristics = { 200, 0.7, 0.01, { 0.9, 0.99, 0.97 }, {0, 30, 50}, 100 };
+    Pipeline_parameters  pipeline_characteristics = { 200, 0.7, 0.01, { 0.9, 0.99, 0.97 }, {0, 30, 50}, 700 };
     // n - количество точек расчетной сетки;
-    int n = 3;
-    // dx - величина шага между узлами расчетной сетки, м;
-    double dx = pipeline_characteristics.L / (n - 1);
+    int n = 10;
     /// Начальное значение плотности нефти в трубе
     double initial_condition_density = 805;
 
@@ -69,7 +67,9 @@ int main(int argc, char** argv)
         transport_equation.output_data(buffer, sum_dt);
         buffer.advance(1);
         sum_dt += transport_equation.get_dt();
+        std::cout << j;
         j++;
+        
     } while (sum_dt <= pipeline_characteristics.T);
 
     return 0; 

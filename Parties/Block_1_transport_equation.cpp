@@ -4,9 +4,9 @@ Block_1_transport_equation::Block_1_transport_equation(Pipeline_parameters& pipe
 {
     this->n = n;
     this->j = j;
-    this->dx = dx;
-    this->speed = speed;
     this->pipeline_characteristics = pipeline_characteristics;
+    // dx - величина шага между узлами расчетной сетки, м;
+    this->dx = pipeline_characteristics.L / (n - 1);
    
 }
 
@@ -93,12 +93,18 @@ double Block_1_transport_equation::interpolation_flow()
     double interpolation_Q;
     vector <double> t = pipeline_characteristics.t;
     vector <double> Q = pipeline_characteristics.Q;
-    if (dt <= t[j]) {
-        interpolation_Q = (dt - t[j - 1]) / (t[j] - t[j - 1]) * (Q[j] - Q[j - 1]) + Q[j - 1];
+    int size_array_Q = pipeline_characteristics.Q.size();
+    if (size_array_Q > j) {
+        if (dt <= t[j]) {
+            interpolation_Q = (dt - t[j - 1]) / (t[j] - t[j - 1]) * (Q[j] - Q[j - 1]) + Q[j - 1];
+        }
+        else {
+            j += 1;
+            interpolation_Q = (dt - t[j - 1]) / (t[j] - t[j - 1]) * (Q[j] - Q[j - 1]) + Q[j - 1];
+        }
     }
     else {
-        j += 1;
-        interpolation_Q = (dt - t[j - 1]) / (t[j] - t[j - 1]) * (Q[j] - Q[j - 1]) + Q[j - 1];
+        interpolation_Q = (pipeline_characteristics.Q)[size_array_Q - 1];
     }
     return interpolation_Q;
 }
