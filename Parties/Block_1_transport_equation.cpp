@@ -84,18 +84,18 @@ double Block_1_transport_equation::interpolation_flow()
     double interpolation_Q;
     /// @param t - синтетический временной ряд времени изменения расхода
     vector <double> t = pipeline_characteristics.t;
+    /// @param size_array - размер синтетического временного массива
+    int size_array = pipeline_characteristics.t.size();
     /// @param Q - синтетический временной ряд изменения расхода
     vector <double> Q = pipeline_characteristics.Q;
     int size_array_Q = pipeline_characteristics.Q.size();
     // Проверка наличия элементов в синтеческом ряде при интерполяции
     if (size_array_Q > j) {
         // Выбор прямой, на которой интерполируется расход
-        if (dt <= t[j]) {
-            interpolation_Q = (dt - t[j - 1]) / (t[j] - t[j - 1]) * (Q[j] - Q[j - 1]) + Q[j - 1];
-        }
-        else {
-            j += 1;
-            interpolation_Q = (dt - t[j - 1]) / (t[j] - t[j - 1]) * (Q[j] - Q[j - 1]) + Q[j - 1];
+        for (int i = 1; i < size_array; i++) {
+            if (dt >= t[i - 1] && dt <= t[i]) {
+                interpolation_Q = (dt - t[i - 1]) / (t[i] - t[i - 1]) * (Q[i] - Q[i - 1]) + Q[i - 1];
+            }
         }
     }
     // Расход становится постоянным
