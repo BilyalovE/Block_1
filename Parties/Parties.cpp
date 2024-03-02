@@ -23,7 +23,7 @@ int main(int argc, char** argv)
 
     setlocale(LC_ALL, "rus");
     /// @param Объявление структуры с именем Pipeline_parameters для переменной pipeline_characteristics
-    Pipeline_parameters  pipeline_characteristics = { 200, 0.7, 0.01, { 0.9, 0.99, 0.97, 0.8, 1, 1.2, 1.6 }, {0, 30, 50, 200, 450, 787, 965}, 700 };
+    Pipeline_parameters  pipeline_characteristics;
     /// @param - количество точек расчетной сетки;
     int n = 10;
     /// @param Начальное значение плотности нефти в трубе

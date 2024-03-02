@@ -2,9 +2,13 @@
 
 Block_1_transport_equation::Block_1_transport_equation(Pipeline_parameters& pipeline_characteristics,int n, int j)
 {
+     /// @param n - количество точек расчетной сетки;
     this->n = n;
+    /// @param j - счетчик слоя
     this->j = j;
+    /// @param pipeline_characteristics - параметры трубопровода
     this->pipeline_characteristics = pipeline_characteristics;
+    /// @param dx - величина шага между узлами расчетной сетки, м;
     this->dx = pipeline_characteristics.L / (n - 1);
 }
 
@@ -81,7 +85,7 @@ void Block_1_transport_equation::output_data(ring_buffer_t<vector<vector<double>
 double Block_1_transport_equation::interpolation_flow()
 {
     /// @param interpolation_Q - интерполированный расход
-    double interpolation_Q;
+    double interpolation_Q{};
     /// @param t - синтетический временной ряд времени изменения расхода
     vector <double> t = pipeline_characteristics.t;
     /// @param size_array - размер синтетического временного массива

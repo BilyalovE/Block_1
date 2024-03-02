@@ -6,11 +6,11 @@
 struct Pipeline_parameters
 {
     /// @param L - длина трубопровода, м;
-    double L;
+    double L = 200;
     /// @param D - внешний диаметр трубы, м;
-    double D;
+    double D = 0.7;
     /// @param d - толщина стенки трубы, м;
-    double d;
+    double d = 0.01;
     /// @brief get_inner_diametr - функция, рассчитывающая внутренний диаметр трубы
     double get_inner_diametr() const {
         return D - 2 * d;
@@ -22,9 +22,9 @@ struct Pipeline_parameters
         return S;
     };
     /// @param Q - синтетический ряд изменения расхода, где нулевой элемент массива Q - расход в начале моделирования (t = 0)
-    vector <double> Q = {};
+    vector <double> Q = { 0.9, 0.99, 0.97, 0.8, 1, 1.2, 1.6 };
     /// @param t - временной ряд изменения расхода, где нулевой элемент массива t = 0
-    vector <double> t = {};
+    vector <double> t = { 0, 30, 50, 200, 450, 787, 965 };
     /// @param T - период моделирования, c.
-    int T;
+    int T = 700;
 };
