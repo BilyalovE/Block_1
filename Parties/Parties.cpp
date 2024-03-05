@@ -40,6 +40,7 @@ int main(int argc, char** argv)
     vector <double> initial_sulfar_layer(n, initial_condition_sulfar);
     /// @param Вектор содержания серы в нефти входных партий 
     vector <double> input_conditions_sulfar = {0.2, 0.1, 0.1, 0.1, 0.25, 0.25, 0.25, 0.25, 0 };
+    vector <double> time_input_parties = {10, 20, 40, 50, 80, 100, 200, 300, 400 };
     /// @param Число рассчитываемых параметров (2 параметра - сера и плотность)
     int num_parameters = 2; 
     /// @param Вектор векторов параметров нефти входных партий
