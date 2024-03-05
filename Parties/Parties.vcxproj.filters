@@ -26,5 +26,10 @@
     <ClInclude Include="Block_1_transport_equation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+develop(diplom-AT)-24-02-24
+    <ClInclude Include="Struct_pipe.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+
   </ItemGroup>
 </Project>
