@@ -1,6 +1,8 @@
 ﻿#include "Block_1_transport_equation.h"
 
+
 Block_1_transport_equation::Block_1_transport_equation(Pipeline_parameters& pipeline_characteristics,int n, int j)
+
 {
      /// @param n - количество точек расчетной сетки;
     this->n = n;
@@ -14,6 +16,7 @@ Block_1_transport_equation::Block_1_transport_equation(Pipeline_parameters& pipe
 
 void Block_1_transport_equation::method_characteristic(vector<double>& current_layer, vector<double>& previous_layer, 
                                                         double left_condition) const
+
 {
     // Получение ссылок на текущий и предыдущий слои буфера
     for (size_t i = 1; i < n; i++)
@@ -67,6 +70,7 @@ void Block_1_transport_equation::output_data(ring_buffer_t<vector<vector<double>
         for (size_t i = 0; i < previous_layer[0].size(); i++) {
             outFile << sum_dt << "," << i * dx << "," << previous_layer[0][i] << "," << previous_layer[1][i] << endl;
             
+
         }
         outFile.close();
     }
@@ -76,6 +80,7 @@ void Block_1_transport_equation::output_data(ring_buffer_t<vector<vector<double>
         // Записать значения текущего слоя в файл
         for (size_t i = 0; i < previous_layer[0].size(); i++) {
             outFile << sum_dt << "," << i * dx << "," << previous_layer[0][i] << "," << previous_layer[1][i] << endl;
+
         }
         outFile.close();
     }

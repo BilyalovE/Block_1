@@ -9,12 +9,14 @@
 #include <pde_solvers/pde_solvers.h>
 #include "Struct_pipe.h"
 
+
 /// @brief класс Block_1 для решения задач из блока 1 - Модель движения партий
 class Block_1_transport_equation
 {
     // Поля класса
     /// @param n - количество точек расчетной сетки;
     int n;
+
     /// @param j - счетчик слоя
     int j;
     /// @param dx - величина шага между узлами расчетной сетки, м;
@@ -30,6 +32,7 @@ public:
     /// @brief Конструктор класса Block_1
     /// @param pipeline_characteristics - Структура исходных параметров трубопровода
     /// @param n - количество точек расчетной сетки;
+
     /// @param j - счетчик текущего слоя
     Block_1_transport_equation(Pipeline_parameters& pipeline_characteristics, int n, int j);
 
@@ -40,6 +43,7 @@ public:
     /// @return previous_layer - возвращает рассчитанный по методу характеристик текущий слой
     void method_characteristic(vector<double>& current_layer, vector<double>& previous_layer, double left_condition) const;
 
+
     /// @brief get_speed - метод расчета скорости по расходу (расход может быть интерполирован)
     double get_speed();
     
@@ -48,6 +52,7 @@ public:
 
     /// @brief output_data - метод вывода слоев в файл формата csv
     void output_data(ring_buffer_t<vector<vector<double>>>& buffer, double sum_dt) const;
+
 
     /// @brief interpolation_flow - метод линейной интерполяции расхода
     double interpolation_flow();

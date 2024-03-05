@@ -3,6 +3,7 @@
     \ author Bilyalov Eldar
     \ version 6.0 (Модель с переменным шагом по времени / рефакторинг)
     \ date 01.03.24
+
 */
 
 // Подключаем необходимые библиотеки
@@ -13,6 +14,7 @@
 #include <pde_solvers/pde_solvers.h>
 #include "Block_1_transport_equation.h"
 #include "Struct_pipe.h"
+
 
 
 /// @brief Главная функция, в которой происходит инициализация структур, краевых и начальных условий, а также вызов функции солвера и функции вывода в файл
@@ -50,6 +52,7 @@ int main(int argc, char** argv)
     /// @param number_layers_buffer - количество слоев в буфере (для метода характеристик достаточно хранить 2 слоя - предыдущий и текущий слои)
     int number_layers_buffer = 2;
     ring_buffer_t <vector<vector<double>>> buffer(number_layers_buffer, { initial_density_layer, initial_sulfar_layer });
+
     // Расчёт произвольного числа слоев (solver_parameters.number_layers) через вызов функции solver в цикле
     /// @param sum_dt -  сумма времени моделирования 
     double sum_dt = 0;
